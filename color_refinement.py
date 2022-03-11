@@ -3,19 +3,31 @@ from graph import *
 from graph_io import *
 
 
-def color_refinement(G: "Graph"):
-    start = time.time()
+def color_refinement(D: ["Vertex"], I: ["Vertex"], G: "Graph"):
     prev_i = -1
     i = 0
     alpha = dict()
-    for v in G.vertices:
-        v.colornum = v.degree
-        if v.colornum in alpha.keys():
-            alpha[v.colornum].append(v)
-        else:
-            alpha[v.colornum] = [v]
-        i = max(i, v.degree)
-    i = i + 1  # the next available coloring
+
+    if len(D) == 0:
+        for v in G.vertices:
+            v.colornum = v.degree
+            if v.colornum in alpha.keys():
+                alpha[v.colornum].append(v)
+            else:
+                alpha[v.colornum] = [v]
+            i = max(i, v.degree)
+        i = i + 1  # the next available coloring
+    else:
+        for v in G.vertices:
+            v.colornum = 0
+
+        for x in range(0, len(D)):
+            vertexD = D[x]
+            vertexI = I[x]
+            vertexD.colornum = x + 1
+            vertexI.colornum = x + 1
+
+        i = len(D) + 1
 
     while prev_i != i:
         if prev_i != -1:
@@ -55,8 +67,7 @@ def color_refinement(G: "Graph"):
                 for j in range(1, len(separated)):
                     alpha[i] = separated[j]
                     i = i + 1
-    end = time.time()
-    print("Coloring time: ", end-start)
+    return alpha
 
 
 def sorted_neighbour_coloring(v: "Vertex") -> [int]:
