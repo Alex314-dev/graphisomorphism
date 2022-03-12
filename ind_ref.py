@@ -33,9 +33,9 @@ def ind_ref(D, I, U):
     x = alpha[0][color_class][0]        # the first vertex in G with color `color_class` ~ TODO: improve
     num = 0
     for y in alpha[1][color_class]:     # vertices in H with color `color_class`
-        D_ = D + [x]
-        I_ = I + [y]
-        num = num + ind_ref(D_, I_, U)
+        D.append(x)
+        I.append(y)
+        num = num + ind_ref(D, I, U)
     return num
 
 
