@@ -18,17 +18,16 @@ def color_refinement(D: ["Vertex"], I: ["Vertex"], G: "Graph"):
         i = i + 1  # the next available coloring
     else:
         for v in G.vertices:
-            i = max(i, v.colornum)
+            v.colornum = 0
         for x in range(0, len(D)):
-            i = i + 1
-            D[x].colornum = i
-            I[x].colornum = i
+            D[x].colornum = x + 1
+            I[x].colornum = x + 1
         for v in G.vertices:
             if v.colornum in alpha.keys():
                 alpha[v.colornum].append(v)
             else:
                 alpha[v.colornum] = [v]
-        i = i + 1  # the next available coloring
+        i = len(D) + 1  # the next available coloring
 
     while prev_i != i:
         if prev_i != -1:
@@ -170,5 +169,5 @@ if __name__ == '__main__':
     U = G + H
     print(color_refinement([], [], U))
     Uv = sorted(list(U.vertices), key=lambda v: v.label)
-    alpha = color_refinement([Uv[0], Uv[5]], [Uv[8], Uv[15]], U)
+    alpha = color_refinement([Uv[0]], [Uv[12]], U)
     print(alpha)

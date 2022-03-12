@@ -17,7 +17,6 @@ Individual color refinement
 
 def ind_ref(D, I, U):
     alpha = color_refinement(D, I, U)
-    print(alpha)
 
     if not is_balanced(alpha):
         return 0
@@ -81,8 +80,8 @@ def complete_graph(n: int) -> Graph:
 
 
 if __name__ == '__main__':
-    G = complete_graph(4)
-    H = complete_graph(4)
+    G = complete_graph(5)
+    H = complete_graph(5)
     U = union(G, H)
     D = list()
     I = list()
