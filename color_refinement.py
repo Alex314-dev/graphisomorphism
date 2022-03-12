@@ -135,8 +135,8 @@ def update_vertex_coloring(alpha: {int: ["Vertex"]}, i: int):
 #         output[0].append(eq_class)
 #         output[1].append(isDiscrete)
 #     print(output)
-#
-#
+
+
 if __name__ == '__main__':
     G = Graph(False, 8)
     H = Graph(False, 8)
