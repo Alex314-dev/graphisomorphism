@@ -72,17 +72,17 @@ def color_refinement(D: ["Vertex"], I: ["Vertex"], G: "Graph"):
 
 
 def separate_coloring(alpha: {int: ["Vertex"]}, vertex_num: int):
-    alpha1 = dict()
-    alpha2 = dict()
+    alpha1 = dict() #dictionary to store colornums and their respective vertices for first graph
+    alpha2 = dict() #dictionary to store colornums and their respective vertices for second graph
 
-    for key, val in alpha.items():
-        alpha1[key] = list()
+    for key, val in alpha.items(): #iterating through the union graph
+        alpha1[key] = list() #every colornum present in the union is assigned as key
         alpha2[key] = list()
-        for v in val:
-            if v.label // vertex_num == 0:
-                alpha1[key].append(v)
+        for v in val: #iterate through the vertices
+            if v.label // vertex_num == 0: # if the vertix label devided by the number of vertices is 0
+                alpha1[key].append(v)  # then vertix is in first graph
             else:
-                alpha2[key].append(v)
+                alpha2[key].append(v)  # otherwise, vertix is in second graph
 
     return [alpha1, alpha2]
 
