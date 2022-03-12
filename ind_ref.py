@@ -1,4 +1,8 @@
+from math import inf
+
 from color_refinement import *
+from time import time
+import collections
 
 '''
 Disjoint union of two graphs
@@ -14,6 +18,76 @@ Individual color refinement
 '''
 
 
+def get_closest_to_avg_length_vertex_list(dict_colornum_vertices):
+    sum_lengths = sum(len(vertices_list) for vertices_list in dict_colornum_vertices.values())
+    avg = sum_lengths // len(dict_colornum_vertices.keys())
+
+    val = min(dict_colornum_vertices.values(), key=lambda vertices_list: abs(len(vertices_list) - avg))
+
+    return val
+
+
+def get_color_class(dict_colornum_vertices):
+    # find colornum that appears the most
+    # most_frequent = max(dict_colornum_vertices, key = lambda x: len(set(dict_colornum_vertices[x])))
+    # print(f"most_frequent = {most_frequent}")
+
+    dict_candidates = {}
+
+    """
+    OPTION 1 BRANCHING: taking the colornum of with an avg vertex list
+    val = get_closest_to_avg_length_vertex_list(dict_colornum_vertices)
+    index = list(dict_colornum_vertices.values()).index(val)
+    color_class = list(dict_colornum_vertices.keys())[index]
+    """
+
+    for colornum, vertex_list in dict_colornum_vertices.items():
+        if len(vertex_list) >= 2:
+            color_class = colornum
+            # dict_candidates[colornum] = len(vertex_list)
+
+    """least_frequent = inf
+
+    for colornum, length in dict_candidates.items():
+        if length < least_frequent:
+            least_frequent = length
+            color_class = colornum"""
+
+    return color_class
+
+
+def have_common_edge(vertex1, vertex2):
+    return vertex1.is_adjacent(vertex2)
+
+
+def have_same_neighborhood_no_self(vertex1, vertex2):
+    neighborhood_vertex1 = vertex1.neighbours.remove(vertex1)
+    neighborhood_vertex2 = vertex2.neighbours.remove(vertex2)
+
+    return collections.Counter(neighborhood_vertex1) == collections.Counter(neighborhood_vertex2)  # O(n)
+
+
+def have_exactly_same_neighborhood(vertex1, vertex2):
+    neighborhood_vertex1 = vertex1.neighbours
+    neighborhood_vertex2 = vertex2.neighbours
+
+    return collections.Counter(neighborhood_vertex1) == collections.Counter(neighborhood_vertex2)  # O(n)
+
+
+def are_twins(vertex1, vertex2):
+    return have_common_edge(vertex1, vertex2) and have_same_neighborhood_no_self(vertex1, vertex2)
+
+
+def are_false_twins(vertex1: "Vertex", vertex2: "Vertex"):
+    false_twins = False
+
+    if are_twins(vertex1, vertex2):
+        if have_exactly_same_neighborhood(vertex1, vertex2):
+            false_twins = True
+
+    return false_twins
+
+
 def ind_ref(D, I, U):
     alpha = color_refinement(D, I, U)
 
@@ -23,14 +97,16 @@ def ind_ref(D, I, U):
         return 1
 
     color_class = 0
-    for colornum, vertex_list in alpha[0].items():
-        if len(vertex_list) >= 2:
-            color_class = colornum  # the first coloring with more than 4 vertices in `U` ~ TODO: improve
-            break
+
+    color_class = get_color_class(alpha[0]) # TODO: improve
 
     x = alpha[0][color_class][0]  # the first vertex in G with color `color_class` ~ TODO: improve
     num = 0
+
+    #build_false_twins() TODO: build false twins list for y's, based on the are_dalse_twins function
+
     for y in alpha[1][color_class]:  # vertices in H with color `color_class`
+        # TODO: check if the current y is in the false twins list
         D_ = D + [x]
         I_ = I + [y]
         num = num + ind_ref(D_, I_, U)
@@ -126,9 +202,12 @@ def exec(file_path):
 
 
 if __name__ == '__main__':
+    start = time()
     graph_name = "wheeljoin14"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     exec(file_path)
+
+    print(time() - start)
 
 """
     G = complete_graph(5)
