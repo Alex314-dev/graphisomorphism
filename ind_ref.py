@@ -60,9 +60,11 @@ def have_common_edge(vertex1, vertex2):
     return vertex1.is_adjacent(vertex2)
 
 
-def have_same_neighborhood_no_self(vertex1, vertex2):
-    neighborhood_vertex1 = vertex1.neighbours.remove(vertex1)
-    neighborhood_vertex2 = vertex2.neighbours.remove(vertex2)
+def have_same_neighborhood_no_other(vertex1, vertex2):
+    neighborhood_vertex1 = vertex1.neighbours
+    neighborhood_vertex1.remove(vertex2)
+    neighborhood_vertex2 = vertex2.neighbours
+    neighborhood_vertex2.remove(vertex1)
 
     return collections.Counter(neighborhood_vertex1) == collections.Counter(neighborhood_vertex2)  # O(n)
 
@@ -75,17 +77,12 @@ def have_exactly_same_neighborhood(vertex1, vertex2):
 
 
 def are_twins(vertex1, vertex2):
-    return have_common_edge(vertex1, vertex2) and have_same_neighborhood_no_self(vertex1, vertex2)
+    return have_common_edge(vertex1, vertex2) and have_same_neighborhood_no_other(vertex1, vertex2)
 
 
-def are_false_twins(vertex1: "Vertex", vertex2: "Vertex"):
-    false_twins = False
-
-    if are_twins(vertex1, vertex2):
-        if have_exactly_same_neighborhood(vertex1, vertex2):
-            false_twins = True
-
-    return false_twins
+def are_twins_or_false_twins(vertex1: "Vertex", vertex2: "Vertex"):
+    # if they have a common edge, they won't have exactly the same neighborhood
+    return have_exactly_same_neighborhood(vertex1, vertex2) or are_twins(vertex1, vertex2)
 
 
 def ind_ref(D, I, U):
@@ -98,14 +95,14 @@ def ind_ref(D, I, U):
 
     color_class = 0
 
-    color_class = get_color_class(alpha[0]) # TODO: improve
+    color_class = get_color_class(alpha[0])  # TODO: improve
 
     x = alpha[0][color_class][0]  # the first vertex in G with color `color_class` ~ TODO: improve
     num = 0
 
-    #build_false_twins() TODO: build false twins list for y's, based on the are_dalse_twins function
-
     for y in alpha[1][color_class]:  # vertices in H with color `color_class`
+        # are_twins_or_false_twins(x, y)
+
         # TODO: check if the current y is in the false twins list
         D_ = D + [x]
         I_ = I + [y]
@@ -154,6 +151,13 @@ def complete_graph(n: int) -> Graph:
     return G
 
 
+def build_false_twins(H):
+    for i in range(len(H.vertices)):
+        for j in range(i + 1, len(H.vertices)):
+            if are_twins_or_false_twins(H.vertices[i], H.vertices[j]):
+                pass
+
+
 def find_isomorphic_graphs(graphs):
     isomorphic_graphs_groups = []
     group = []  # list of isomorphic graphs
@@ -170,6 +174,7 @@ def find_isomorphic_graphs(graphs):
         for index_graph2 in range(index_graph1 + 1, len(graphs)):
             if index_graph1 != index_graph2:
                 U = graphs[index_graph1] + graphs[index_graph2]
+                # false_twins_structure = build_false_twins(graphs[index_graph2]) #TODO: build false twins list for y's, based on the are_false_twins function
                 count_automorphism = ind_ref([], [], U)
 
                 if count_automorphism:  # if the number of automorphisms is more than 0
