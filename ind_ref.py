@@ -1,5 +1,3 @@
-from math import inf
-
 from color_refinement import *
 from time import time
 import collections
@@ -11,11 +9,6 @@ Disjoint union of two graphs
 
 def union(G, H):
     return G + H
-
-
-'''
-Individual color refinement
-'''
 
 
 def get_closest_to_avg_length_vertex_list(dict_colornum_vertices):
@@ -85,7 +78,7 @@ def are_twins_or_false_twins(vertex1: "Vertex", vertex2: "Vertex"):
     return have_exactly_same_neighborhood(vertex1, vertex2) or are_twins(vertex1, vertex2)
 
 
-def ind_ref(D, I, U):
+def ind_ref(D, I, U, y_to_its_false_twins):
     alpha = color_refinement(D, I, U)
 
     if not is_balanced(alpha):
@@ -93,20 +86,23 @@ def ind_ref(D, I, U):
     if is_bijection(alpha):
         return 1
 
-    color_class = 0
-
     color_class = get_color_class(alpha[0])  # TODO: improve
 
     x = alpha[0][color_class][0]  # the first vertex in G with color `color_class` ~ TODO: improve
+    y_to_automorphism_count = dict()
+    for i in range(len(U.vertices) // 2, len(U.vertices)):
+        y_to_automorphism_count[U.vertices[i]] = -1
     num = 0
-
     for y in alpha[1][color_class]:  # vertices in H with color `color_class`
-        # are_twins_or_false_twins(x, y)
-
-        # TODO: check if the current y is in the false twins list
+        if y_to_automorphism_count[y] != -1:
+            num = num + y_to_automorphism_count[y]
+            continue
         D_ = D + [x]
         I_ = I + [y]
-        num = num + ind_ref(D_, I_, U)
+        temp_sol = ind_ref(D_, I_, U, y_to_its_false_twins)
+        for twin_of_y in y_to_its_false_twins[y]:
+            y_to_automorphism_count[twin_of_y] = temp_sol
+        num = num + temp_sol
     return num
 
 
@@ -152,10 +148,17 @@ def complete_graph(n: int) -> Graph:
 
 
 def build_false_twins(H):
-    for i in range(len(H.vertices)):
+    y_to_its_false_twins = dict()
+
+    for i in range(len(H.vertices) // 2, len(H.vertices)):
+        y_to_its_false_twins[H.vertices[i]] = list()
+
+    for i in range(len(H.vertices) // 2, len(H.vertices)):
         for j in range(i + 1, len(H.vertices)):
             if are_twins_or_false_twins(H.vertices[i], H.vertices[j]):
-                pass
+                y_to_its_false_twins[H.vertices[i]].append(H.vertices[j])
+                y_to_its_false_twins[H.vertices[j]].append(H.vertices[i])
+    return y_to_its_false_twins
 
 
 def find_isomorphic_graphs(graphs):
@@ -174,8 +177,8 @@ def find_isomorphic_graphs(graphs):
         for index_graph2 in range(index_graph1 + 1, len(graphs)):
             if index_graph1 != index_graph2:
                 U = graphs[index_graph1] + graphs[index_graph2]
-                # false_twins_structure = build_false_twins(graphs[index_graph2]) #TODO: build false twins list for y's, based on the are_false_twins function
-                count_automorphism = ind_ref([], [], U)
+                y_to_its_false_twins = build_false_twins(U)
+                count_automorphism = ind_ref([], [], U, y_to_its_false_twins)
 
                 if count_automorphism:  # if the number of automorphisms is more than 0
                     group_count_automorphism = count_automorphism
@@ -208,17 +211,9 @@ def exec(file_path):
 
 if __name__ == '__main__':
     start = time()
+
     graph_name = "wheeljoin14"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     exec(file_path)
 
     print(time() - start)
-
-"""
-    G = complete_graph(5)
-    H = complete_graph(5)
-    U = union(G, H)
-    D = list()
-    I = list()
-    print(ind_ref(D, I, U))
-"""
