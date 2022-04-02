@@ -46,12 +46,22 @@ def count_neighbors_with_color_class_i(neighbours, color_class_i):
     return counter
 
 
-def update_queue(queue, C_i_vertices, new_color_class, i, l):
-    #in queue check
-    if len(C_i_vertices) < len(new_color_class):
-        queue.append(i)
-    else:
+def update_queue(queue, in_queue, C_i_vertices, new_color_class, i, l):
+    in_queue.append(False)
+    if in_queue[i]:
         queue.append(l)
+        # if len(in_queue) - 1 < l:  # TODO: add this one?
+        #    in_queue.append(True)
+        in_queue[l] = True
+
+    else:
+        if len(C_i_vertices) < len(new_color_class):
+            queue.append(i)
+            in_queue[i] = True
+
+        else:
+            queue.append(l)
+            in_queue[l] = True
 
 
 def update_color(new_color_class, new_color):
@@ -68,7 +78,7 @@ def add_new_color(alpha_list, new_color_class, new_color):
     alpha_list.append(update_color(new_color_class, new_color))
 
 
-def update_alpha_list_and_queue(alpha_list, i, queue, new_color_classes, new_color):
+def update_alpha_list_and_queue(alpha_list, i, queue, in_queue, new_color_classes, new_color):
     # 1 color should remain as is
     # majority = find_majority(new_color_classes)?
     # alpha_list[i] = majority?
@@ -76,13 +86,13 @@ def update_alpha_list_and_queue(alpha_list, i, queue, new_color_classes, new_col
 
     for new_color_class in new_color_classes[1:]:
         add_new_color(alpha_list, new_color_class, new_color)
-        update_queue(queue, C_i_vertices=alpha_list[i], new_color_class=alpha_list[-1], i=i, l=new_color)
+        update_queue(queue, in_queue, C_i_vertices=alpha_list[i], new_color_class=alpha_list[-1], i=i, l=new_color)
         new_color += 1
 
     return new_color - 1  # minus 1, since we add 1 one more time after updating the queue
 
 
-def refine_graph(alpha_list, color_class_i, queue):
+def refine_graph(alpha_list, color_class_i, queue, in_queue):
     stable = True
 
     max_color = alpha_list[-1][0].colornum  # the last colorclass
@@ -101,27 +111,32 @@ def refine_graph(alpha_list, color_class_i, queue):
                 new_color_classes[neighbors_with_color_class_i_counter].append(vertex)
 
         if len(new_color_classes.keys()) > 1:  # 1 if all vertices have same amount of neighbors to color_class_i
-            max_color = update_alpha_list_and_queue(alpha_list, i, queue, list(new_color_classes.values()), new_color)
+            max_color = update_alpha_list_and_queue(alpha_list, i, queue, in_queue, list(new_color_classes.values()),
+                                                    new_color)
             stable = False  # the graph is still not stable, since a change has occured in this coloring iteration
 
 
 # initialize queue to have k-1 colors (k=#of colors)
 def initialize_queue(alpha_list):
     queue = []
+    in_queue = [False] * (alpha_list[-1][0].colornum + 1)
+
     for i in range(len(alpha_list) - 1):
         queue.append(alpha_list[i][0].colornum)
+        in_queue[alpha_list[i][0].colornum] = True
 
-    return queue
+    return queue, in_queue
 
 
 def color_refinement(G: "Graph"):
     alpha_list = initialization(G)
-    queue = initialize_queue(alpha_list)  # put the minimum colornum in the queue
+    queue, in_queue = initialize_queue(alpha_list)  # put the minimum colornum in the queue
 
     while queue:
         color_class_i = queue[0]
-        refine_graph(alpha_list, color_class_i, queue)
+        refine_graph(alpha_list, color_class_i, queue, in_queue)
         queue = queue[1:]  # Dequeue
+        in_queue[color_class_i] = False
 
 
 def write_graph(G, graph_name):
@@ -143,8 +158,8 @@ def execute(file_path, graph_name):
 
 
 def main():
-    graph_name = "wheeljoin33"
-    file_path = f'SampleGraphSetBranching//{graph_name}.grl'
+    graph_name = "colorref_smallexample_4_16"
+    file_path = f'sample//{graph_name}.grl'
     execute(file_path, graph_name)
 
     dict = {'1': [1, 2, 4], '0': [0, 5, 6], '2': [123, 123, 32]}
