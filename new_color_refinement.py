@@ -77,7 +77,8 @@ def update_alpha_list_and_queue(alpha_list, i, queue, new_color_classes, new_col
 
     for new_color_class in new_color_classes[1:]:
         add_new_color(alpha_list, new_color_class, new_color)
-        update_queue(queue, C_i_vertices=alpha_list[i], new_color_class=alpha_list[-1], i=alpha_list[i][0].colornum, l=new_color)
+        update_queue(queue, C_i_vertices=alpha_list[i], new_color_class=alpha_list[-1], i=alpha_list[i][0].colornum,
+                     l=new_color)
         new_color += 1  # TODO: IS THAT CORRECT?
 
     return new_color - 1  # minus 1, since we add 1 one more time after updating the queue
@@ -134,11 +135,32 @@ def write_graph(G, graph_name):
             write_dot(G, f)
             print("Done!")
 
+def get_graph_attributes(graph):
+    return {'vertices_num': len(graph.vertices), 'edges_num': len(graph.edges), 'is_directed': graph.directed}
+
+
+def disjoint_union_graphs(graphs_to_union):
+    graphs_attributes = []
+    G = graphs_to_union[0]
+    graphs_attributes.append(get_graph_attributes(G))
+
+    for i in range(1, len(graphs_to_union)):
+        graph_to_add = graphs_to_union[i]
+        graphs_attributes.append(get_graph_attributes(graph_to_add))
+        G = G + graph_to_add
+
+    return G, graphs_attributes
+
 
 def execute(file_path, graph_name):
     with open(file_path) as f:
         L = load_graph(f, read_list=True)
         graphs = L[0]
+
+        (G, graphs_attributes) = disjoint_union_graphs(L[0])
+
+        color_refinement(G)
+        write_graph(G, graph_name + "UNION")
 
         for count, G in enumerate(graphs):
             color_refinement(G)
