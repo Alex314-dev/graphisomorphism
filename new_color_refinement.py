@@ -91,10 +91,11 @@ def refine_graph(alpha_list, color_class_i, queue):
 
     max_color = alpha_list[-1][0].colornum  # the last colorclass
 
-    for i in range(len(alpha_list)):  # TODO: dont iterate through the new added colo_classes
+    for i in range(len(alpha_list)):  # don't iterate through the new added colo_classes
         C_i_vertices = alpha_list[i]
 
-        if C_i_vertices[0].colornum == color_class_i:  # dont compare a class with itself!
+        if C_i_vertices[0].colornum == color_class_i or len(
+                C_i_vertices) == 1:  # skip stabled class and dont compare a class with itself!
             continue
 
         new_color = max_color + 1  # find the new l
@@ -140,6 +141,7 @@ def write_graph(G, graph_name):
             write_dot(G, f)
             print("Done!")
 
+
 def get_graph_attributes(graph):
     return {'vertices_num': len(graph.vertices), 'edges_num': len(graph.edges), 'is_directed': graph.directed}
 
@@ -173,7 +175,6 @@ def execute_2(file_path, graph_name):
 
         (G, graphs_attributes) = disjoint_union_graphs(L[0])
 
-
         color_refinement(G)
         write_graph(G, graph_name + "UNION")
 
@@ -184,16 +185,16 @@ def execute_2(file_path, graph_name):
 
 def main():
     start = time.time()
-    graph_name = "threepaths20.gr"
+    graph_name = "threepaths5.gr"
     file_path = f'SampleGraphsFastColorRefinement//{graph_name}'
     execute(file_path, graph_name)
     print(time.time() - start)
 
-    '''
+
     graph_name = "colorref_smallexample_4_16"
     file_path = f'sample//{graph_name}.grl'
     execute_2(file_path, graph_name)
-    '''
+
 
 
 if __name__ == '__main__':
