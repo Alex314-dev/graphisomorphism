@@ -1,3 +1,5 @@
+import time
+
 from graph import *
 from graph_io import *
 
@@ -51,7 +53,7 @@ def update_queue(queue, C_i_vertices, new_color_class, i, l):
         queue.append(l)
 
     else:
-        if len(C_i_vertices) <= len(new_color_class):
+        if len(C_i_vertices) < len(new_color_class):
             queue.append(i)
         else:
             queue.append(l)
@@ -109,11 +111,14 @@ def refine_graph(alpha_list, color_class_i, queue):
             stable = False  # the graph is still not stable, since a change has occured in this coloring iteration
 
 
-# initialize queue to have k-1 colors (k=#of colors)
+# initialize queue to have k-1 colors (k=#of colors), the longest C_i should not be included in the queue!
 def initialize_queue(alpha_list):
     queue = []
-    for i in range(len(alpha_list) - 1):
-        queue.append(alpha_list[i][0].colornum)
+    index_of_longest = max(enumerate(alpha_list), key=lambda tup: len(tup[1]))[0]
+
+    for i in range(len(alpha_list)):
+        if i != index_of_longest:
+            queue.append(alpha_list[i][0].colornum)
 
     return queue
 
@@ -155,9 +160,19 @@ def disjoint_union_graphs(graphs_to_union):
 def execute(file_path, graph_name):
     with open(file_path) as f:
         L = load_graph(f, read_list=True)
+        G = L[0][0]
+
+        color_refinement(G)
+        write_graph(G, graph_name)
+
+
+def execute_2(file_path, graph_name):
+    with open(file_path) as f:
+        L = load_graph(f, read_list=True)
         graphs = L[0]
 
         (G, graphs_attributes) = disjoint_union_graphs(L[0])
+
 
         color_refinement(G)
         write_graph(G, graph_name + "UNION")
@@ -168,13 +183,17 @@ def execute(file_path, graph_name):
 
 
 def main():
+    start = time.time()
+    graph_name = "threepaths20.gr"
+    file_path = f'SampleGraphsFastColorRefinement//{graph_name}'
+    execute(file_path, graph_name)
+    print(time.time() - start)
+
+    '''
     graph_name = "colorref_smallexample_4_16"
     file_path = f'sample//{graph_name}.grl'
-    execute(file_path, graph_name)
-
-    dict = {'1': [1, 2, 4], '0': [0, 5, 6], '2': [123, 123, 32]}
-    print(dict)
-    print(convert_dict_to_list(dict))
+    execute_2(file_path, graph_name)
+    '''
 
 
 if __name__ == '__main__':
