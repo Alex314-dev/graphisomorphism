@@ -1,4 +1,5 @@
 import time
+import collections
 
 from graph import *
 from graph_io import *
@@ -136,7 +137,8 @@ def refine_graph(alpha_list, color_class_i, queue, in_queue):
                 new_color_classes[neighbors_with_color_class_i_counter].append(vertex)
 
         if len(new_color_classes.keys()) > 1:  # 1 if all vertices have same amount of neighbors to color_class_i
-            max_color = update_alpha_list_and_queue(alpha_list, i, queue, in_queue, list(new_color_classes.values()), new_color)
+            od = collections.OrderedDict(new_color_classes)
+            max_color = update_alpha_list_and_queue(alpha_list, i, queue, in_queue, list(od.values()), new_color)
             stable = False  # the graph is still not stable, since a change has occured in this coloring iteration
 
 
