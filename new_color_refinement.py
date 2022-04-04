@@ -175,7 +175,10 @@ def execute_2(file_path, graph_name):
 
         (G, graphs_attributes) = disjoint_union_graphs(L[0])
 
+        start = time.time()
         color_refinement(G)
+        end = time.time()
+        print(f"Time elapsed: {end - start}")
         write_graph(G, graph_name + "UNION")
 
         for count, G in enumerate(graphs):
@@ -184,14 +187,14 @@ def execute_2(file_path, graph_name):
 
 
 def main():
+    # start = time.time()
+    # graph_name = "threepaths5.gr"
+    # file_path = f'SampleGraphsFastColorRefinement//{graph_name}'
+    # execute(file_path, graph_name)
+    # print(time.time() - start)
+
     start = time.time()
-    graph_name = "threepaths5.gr"
-    file_path = f'SampleGraphsFastColorRefinement//{graph_name}'
-    execute(file_path, graph_name)
-    print(time.time() - start)
-
-
-    graph_name = "colorref_smallexample_4_16"
+    graph_name = "colorref_largeexample_4_1026"
     file_path = f'sample//{graph_name}.grl'
     execute_2(file_path, graph_name)
 
