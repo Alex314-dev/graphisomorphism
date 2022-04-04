@@ -1,3 +1,5 @@
+import time
+
 from graph import *
 from graph_io import *
 
@@ -46,22 +48,15 @@ def count_neighbors_with_color_class_i(neighbours, color_class_i):
     return counter
 
 
-def update_queue(queue, in_queue, C_i_vertices, new_color_class, i, l):
-    in_queue.append(False)
-    if in_queue[i]:
+def update_queue(queue, C_i_vertices, new_color_class, i, l):
+    if i in queue:
         queue.append(l)
-        # if len(in_queue) - 1 < l:  # TODO: add this one?
-        #    in_queue.append(True)
-        in_queue[l] = True
 
     else:
         if len(C_i_vertices) < len(new_color_class):
             queue.append(i)
-            in_queue[i] = True
-
         else:
             queue.append(l)
-            in_queue[l] = True
 
 
 def update_color(new_color_class, new_color):
@@ -78,27 +73,29 @@ def add_new_color(alpha_list, new_color_class, new_color):
     alpha_list.append(update_color(new_color_class, new_color))
 
 
-def update_alpha_list_and_queue(alpha_list, i, queue, in_queue, new_color_classes, new_color):
+def update_alpha_list_and_queue(alpha_list, i, queue, new_color_classes, new_color):
     # 1 color should remain as is
-    # majority = find_majority(new_color_classes)?
-    # alpha_list[i] = majority?
-    alpha_list[i] = new_color_classes[0]  # find the majority, instead of taking the 0
+    alpha_list[i] = new_color_classes[0]
 
     for new_color_class in new_color_classes[1:]:
         add_new_color(alpha_list, new_color_class, new_color)
-        update_queue(queue, in_queue, C_i_vertices=alpha_list[i], new_color_class=alpha_list[-1], i=i, l=new_color)
-        new_color += 1
+        update_queue(queue, C_i_vertices=alpha_list[i], new_color_class=alpha_list[-1], i=alpha_list[i][0].colornum,
+                     l=new_color)
+        new_color += 1  # TODO: IS THAT CORRECT?
 
     return new_color - 1  # minus 1, since we add 1 one more time after updating the queue
 
 
-def refine_graph(alpha_list, color_class_i, queue, in_queue):
+def refine_graph(alpha_list, color_class_i, queue):
     stable = True
 
     max_color = alpha_list[-1][0].colornum  # the last colorclass
 
-    for i, C_i_vertices in enumerate(alpha_list):
-        if C_i_vertices[0].colornum == color_class_i:  # dont compare a class with itself!
+    for i in range(len(alpha_list)):  # don't iterate through the new added colo_classes
+        C_i_vertices = alpha_list[i]
+
+        if C_i_vertices[0].colornum == color_class_i or len(
+                C_i_vertices) == 1:  # skip stabled class and dont compare a class with itself!
             continue
 
         new_color = max_color + 1  # find the new l
@@ -111,32 +108,30 @@ def refine_graph(alpha_list, color_class_i, queue, in_queue):
                 new_color_classes[neighbors_with_color_class_i_counter].append(vertex)
 
         if len(new_color_classes.keys()) > 1:  # 1 if all vertices have same amount of neighbors to color_class_i
-            max_color = update_alpha_list_and_queue(alpha_list, i, queue, in_queue, list(new_color_classes.values()),
-                                                    new_color)
+            max_color = update_alpha_list_and_queue(alpha_list, i, queue, list(new_color_classes.values()), new_color)
             stable = False  # the graph is still not stable, since a change has occured in this coloring iteration
 
 
-# initialize queue to have k-1 colors (k=#of colors)
+# initialize queue to have k-1 colors (k=#of colors), the longest C_i should not be included in the queue!
 def initialize_queue(alpha_list):
     queue = []
-    in_queue = [False] * (alpha_list[-1][0].colornum + 1)
+    index_of_longest = max(enumerate(alpha_list), key=lambda tup: len(tup[1]))[0]
 
-    for i in range(len(alpha_list) - 1):
-        queue.append(alpha_list[i][0].colornum)
-        in_queue[alpha_list[i][0].colornum] = True
+    for i in range(len(alpha_list)):
+        if i != index_of_longest:
+            queue.append(alpha_list[i][0].colornum)
 
-    return queue, in_queue
+    return queue
 
 
 def color_refinement(G: "Graph"):
     alpha_list = initialization(G)
-    queue, in_queue = initialize_queue(alpha_list)  # put the minimum colornum in the queue
+    queue = initialize_queue(alpha_list)  # put the minimum colornum in the queue
 
     while queue:
         color_class_i = queue[0]
-        refine_graph(alpha_list, color_class_i, queue, in_queue)
+        refine_graph(alpha_list, color_class_i, queue)
         queue = queue[1:]  # Dequeue
-        in_queue[color_class_i] = False
 
 
 def write_graph(G, graph_name):
@@ -147,10 +142,41 @@ def write_graph(G, graph_name):
             print("Done!")
 
 
+def get_graph_attributes(graph):
+    return {'vertices_num': len(graph.vertices), 'edges_num': len(graph.edges), 'is_directed': graph.directed}
+
+
+def disjoint_union_graphs(graphs_to_union):
+    graphs_attributes = []
+    G = graphs_to_union[0]
+    graphs_attributes.append(get_graph_attributes(G))
+
+    for i in range(1, len(graphs_to_union)):
+        graph_to_add = graphs_to_union[i]
+        graphs_attributes.append(get_graph_attributes(graph_to_add))
+        G = G + graph_to_add
+
+    return G, graphs_attributes
+
+
 def execute(file_path, graph_name):
     with open(file_path) as f:
         L = load_graph(f, read_list=True)
+        G = L[0][0]
+
+        color_refinement(G)
+        write_graph(G, graph_name)
+
+
+def execute_2(file_path, graph_name):
+    with open(file_path) as f:
+        L = load_graph(f, read_list=True)
         graphs = L[0]
+
+        (G, graphs_attributes) = disjoint_union_graphs(L[0])
+
+        color_refinement(G)
+        write_graph(G, graph_name + "UNION")
 
         for count, G in enumerate(graphs):
             color_refinement(G)
@@ -158,13 +184,17 @@ def execute(file_path, graph_name):
 
 
 def main():
+    start = time.time()
+    graph_name = "threepaths5.gr"
+    file_path = f'SampleGraphsFastColorRefinement//{graph_name}'
+    execute(file_path, graph_name)
+    print(time.time() - start)
+
+
     graph_name = "colorref_smallexample_4_16"
     file_path = f'sample//{graph_name}.grl'
-    execute(file_path, graph_name)
+    execute_2(file_path, graph_name)
 
-    dict = {'1': [1, 2, 4], '0': [0, 5, 6], '2': [123, 123, 32]}
-    print(dict)
-    print(convert_dict_to_list(dict))
 
 
 if __name__ == '__main__':
