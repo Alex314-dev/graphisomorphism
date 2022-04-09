@@ -1,4 +1,4 @@
-from color_refinement import *
+from new_color_refinement import *
 from time import time
 import collections
 
@@ -212,7 +212,7 @@ def exec(file_path):
 if __name__ == '__main__':
     start = time()
 
-    graph_name = "wheeljoin33"
+    graph_name = "cubes5"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     exec(file_path)
 

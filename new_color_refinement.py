@@ -17,17 +17,31 @@ def convert_dict_to_list(alpha):
     return list_of_lists
 
 
-def initialization(G):
+def initialization(D, I, G):
     alpha = dict()
     i = 0
 
-    for v in G.vertices:
-        v.colornum = v.degree
-        if v.colornum in alpha.keys():
-            alpha[v.colornum].append(v)
-        else:
-            alpha[v.colornum] = [v]
-        # i = max(i, v.degree)
+    if len(D) == 0:
+        for v in G.vertices:
+            v.colornum = v.degree
+            if v.colornum in alpha.keys():
+                alpha[v.colornum].append(v)
+            else:
+                alpha[v.colornum] = [v]
+            i = max(i, v.degree)
+        i = i + 1  # the next available coloring
+    else:
+        for v in G.vertices:
+            v.colornum = 0
+        for x in range(0, len(D)):
+            D[x].colornum = x + 1
+            I[x].colornum = x + 1
+        for v in G.vertices:
+            if v.colornum in alpha.keys():
+                alpha[v.colornum].append(v)
+            else:
+                alpha[v.colornum] = [v]
+        i = len(D) + 1  # the next available coloring
 
     alpha_list = convert_dict_to_list(alpha)
     return alpha_list
@@ -130,9 +144,9 @@ def initialize_queue(alpha_list):
     return queue, in_queue
 
 
-def color_refinement(G: "Graph"):
-    alpha_list = initialization(G)
-    queue, in_queue = initialize_queue(alpha_list)  # put the minimum colornum in the queue
+def color_refinement(D: ["Vertex"], I: ["Vertex"], U: "Graph"):
+    alpha_list = initialization(D, I, U)
+    queue = initialize_queue(alpha_list)  # put the minimum colornum in the queue
 
     while queue:
         color_class_i = queue[0]
@@ -140,6 +154,24 @@ def color_refinement(G: "Graph"):
         queue = queue[1:]  # Dequeue
         in_queue[color_class_i] = False
 
+
+    return separate_coloring(alpha_list, len(U.vertices) // 2)
+
+
+def separate_coloring(alpha: [["Vertex"]], vertex_num: int):
+    alpha1 = dict()  # dictionary to store colornums and their respective vertices for first graph
+    alpha2 = dict()  # dictionary to store colornums and their respective vertices for second graph
+
+    for index, val in enumerate(alpha):  # iterating through the union graph
+        alpha1[alpha[index][0].colornum] = list()  # every colornum present in the union is assigned as key
+        alpha2[alpha[index][0].colornum] = list()
+        for v in val:  # iterate through the vertices
+            if v.label // vertex_num == 0:  # if the vertex belongs to the first graph, it would be in the first half
+                alpha1[alpha[index][0].colornum].append(v)  # then vertix is in first graph
+            else:
+                alpha2[alpha[index][0].colornum].append(v)  # otherwise, vertix is in second graph
+
+    return [alpha1, alpha2]
 
 
 def write_graph(G, graph_name):
