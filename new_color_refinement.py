@@ -90,20 +90,20 @@ def add_new_color(alpha_list, new_color_class, new_color):
     alpha_list.append(update_color(new_color_class, new_color))
 
 
-def update_alpha_list_and_queue(alpha_list, i, queue, in_queue, new_color_classes, new_color):
+def update_alpha_list_and_queue(alpha_list, i, queue, new_color_classes, new_color):
     # 1 color should remain as is
     alpha_list[i] = new_color_classes[0]
 
     for new_color_class in new_color_classes[1:]:
         add_new_color(alpha_list, new_color_class, new_color)
-        update_queue(queue, in_queue, C_i_vertices=alpha_list[i], new_color_class=alpha_list[-1], i=alpha_list[i][0].colornum,
+        update_queue(queue, C_i_vertices=alpha_list[i], new_color_class=alpha_list[-1], i=alpha_list[i][0].colornum,
                      l=new_color)
         new_color += 1  # TODO: IS THAT CORRECT?
 
     return new_color - 1  # minus 1, since we add 1 one more time after updating the queue
 
 
-def refine_graph(alpha_list, color_class_i, queue, in_queue):
+def refine_graph(alpha_list, color_class_i, queue):
     stable = True
 
     max_color = alpha_list[-1][0].colornum  # the last colorclass
@@ -125,9 +125,13 @@ def refine_graph(alpha_list, color_class_i, queue, in_queue):
                 new_color_classes[neighbors_with_color_class_i_counter].append(vertex)
 
         if len(new_color_classes.keys()) > 1:  # 1 if all vertices have same amount of neighbors to color_class_i
-            od = collections.OrderedDict(new_color_classes)
-            max_color = update_alpha_list_and_queue(alpha_list, i, queue, in_queue, list(od.values()), new_color)
+            #od = collections.OrderedDict(new_color_classes)
+            max_color = update_alpha_list_and_queue(alpha_list, i, queue, list(new_color_classes.values()), new_color)
             stable = False  # the graph is still not stable, since a change has occured in this coloring iteration
+
+
+#def pre_neighbours(G):
+
 
 
 # initialize queue to have k-1 colors (k=#of colors), the longest C_i should not be included in the queue!
@@ -150,9 +154,9 @@ def color_refinement(D: ["Vertex"], I: ["Vertex"], U: "Graph"):
 
     while queue:
         color_class_i = queue[0]
-        refine_graph(alpha_list, color_class_i, queue, in_queue)
+        refine_graph(alpha_list, color_class_i, queue)
         queue = queue[1:]  # Dequeue
-        in_queue[color_class_i] = False
+
 
 
     return separate_coloring(alpha_list, len(U.vertices) // 2)
