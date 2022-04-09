@@ -50,42 +50,16 @@ def count_neighbors_with_color_class_i(neighbours, color_class_i):
     return counter
 
 
-# def update_queue(queue, C_i_vertices, new_color_class, i, l):
-#     start = time.time()
-#     if i in queue:
-#         queue.append(l)
-#
-#     else:
-#         if len(C_i_vertices) < len(new_color_class):
-#             queue.append(i)
-#         else:
-#             queue.append(l)
-#     end = time.time()
-#     update_queue_timer(end - start)
+def update_queue(queue, C_i_vertices, new_color_class, i, l):
 
-def update_queue(queue, in_queue, C_i_vertices, new_color_class, i, l):
-    start = time.time()
-    in_queue.append(False)
-    if in_queue[i]:
+    if i in queue:
         queue.append(l)
-        # if len(in_queue) - 1 < l:  # TODO: add this one?
-        #    in_queue.append(True)
-        in_queue[l] = True
 
     else:
         if len(C_i_vertices) < len(new_color_class):
             queue.append(i)
-            in_queue[i] = True
-
         else:
             queue.append(l)
-            in_queue[l] = True
-    end = time.time()
-    update_queue_timer(end - start)
-
-def update_queue_timer(time):
-    global update_queue_time
-    update_queue_time += time
 
 
 def update_color(new_color_class, new_color):
