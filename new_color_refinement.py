@@ -133,6 +133,24 @@ def color_refinement(G: "Graph"):
         refine_graph(alpha_list, color_class_i, queue)
         queue = queue[1:]  # Dequeue
 
+    return separate_coloring(alpha_list, len(G.vertices) // 2)
+
+
+def separate_coloring(alpha: [["Vertex"]], vertex_num: int):
+    alpha1 = dict()  # dictionary to store colornums and their respective vertices for first graph
+    alpha2 = dict()  # dictionary to store colornums and their respective vertices for second graph
+
+    for index, val in enumerate(alpha):  # iterating through the union graph
+        alpha1[alpha[index][0].colornum] = list()  # every colornum present in the union is assigned as key
+        alpha2[alpha[index][0].colornum] = list()
+        for v in val:  # iterate through the vertices
+            if v.label // vertex_num == 0:  # if the vertex belongs to the first graph, it would be in the first half
+                alpha1[index].append(v)  # then vertix is in first graph
+            else:
+                alpha2[index].append(v)  # otherwise, vertix is in second graph
+
+    return [alpha1, alpha2]
+
 
 def write_graph(G, graph_name):
     if G:
