@@ -85,7 +85,7 @@ def update_alpha_list_and_queue(alpha, C_i, queue, new_color_classes, new_color)
     return new_color - 1  # minus 1, since we add 1 one more time after updating the queue
 
 
-def refine_graph(alpha: {int: ["Vertex"]}, color_class_i: int, queue: [int], neighbours):
+def refine_graph(alpha: {int: ["Vertex"]}, color_class_i: int, queue: [int], neighbours: ["Vertex"]):
     max_color = max(list(alpha.keys())) + 1
     keys = list()
     for key in alpha.keys():
@@ -116,16 +116,16 @@ def pre_neighbours(U):
 
 
 def color_refinement(D: ["Vertex"], I: ["Vertex"], U: "Graph"):
-    alpha_list = initialization(D, I, U)
-    queue = initialize_queue(alpha_list)  # put the minimum colornum in the queue
+    alpha = initialization(D, I, U)
+    queue = initialize_queue(alpha)
     neighbours = pre_neighbours(U)
 
     while queue:
         color_class_i = queue[0]
-        refine_graph(alpha_list, color_class_i, queue, neighbours)
+        refine_graph(alpha, color_class_i, queue, neighbours)
         queue = queue[1:]  # Dequeue
 
-    return separate_coloring(alpha_list, len(U.vertices) // 2)
+    return separate_coloring(alpha, len(U.vertices) // 2)
 
 
 def separate_coloring(alpha: {int: ["Vertex"]}, vertex_num: int):
