@@ -1,5 +1,6 @@
 from graph import *
 from graph_io import *
+from queue import Queue
 
 
 # def convert_dict_to_list(alpha):
@@ -14,6 +15,7 @@ from graph_io import *
 
 def initialization(D, I, G):
     alpha = dict()
+    in_queue = dict()
 
     if not len(D):
         for v in G.vertices:
@@ -22,6 +24,7 @@ def initialization(D, I, G):
                 alpha[v.colornum].append(v)
             else:
                 alpha[v.colornum] = [v]
+                in_queue[v.colornum] = False
     else:
         for v in G.vertices:
             v.colornum = 0
@@ -33,18 +36,20 @@ def initialization(D, I, G):
                 alpha[v.colornum].append(v)
             else:
                 alpha[v.colornum] = [v]
+                in_queue[v.colornum] = False
 
-    return alpha
+    return alpha, in_queue
 
 
 # initialize queue to have k-1 colors (k=#of colors), the longest C_i should not be included in the queue!
-def initialize_queue(alpha):
-    queue = []
+def initialize_queue(alpha, in_queue):
+    queue = Queue(0)
     largest_color_class = max(alpha.items(), key=lambda tup: len(tup[1]))[0]
 
     for color_class in alpha.keys():
         if color_class != largest_color_class:
-            queue.append(color_class)
+            queue.put(color_class)
+            in_queue[color_class] = True
 
     return queue
 
@@ -57,14 +62,17 @@ def count_neighbors_with_color_class_i(neighbours, color_class_i):
     return counter
 
 
-def update_queue(queue, C_i_vertices, new_color_class, i, l):
-    if i in queue:
-        queue.append(l)
+def update_queue(queue, C_i_vertices, new_color_class, i, l, in_queue):
+    if in_queue[i]:
+        queue.put(l)
+        in_queue[l] = True
     else:
         if len(C_i_vertices) < len(new_color_class):
-            queue.append(i)
+            queue.put(i)
+            in_queue[i] = True
         else:
-            queue.append(l)
+            queue.put(l)
+            in_queue[l] = True
 
 
 def update_color(new_color_class, new_color):
@@ -72,20 +80,20 @@ def update_color(new_color_class, new_color):
         vertex.colornum = new_color
 
 
-def update_alpha_list_and_queue(alpha, C_i, queue, new_color_classes, new_color):
+def update_alpha_list_and_queue(alpha, C_i, queue, new_color_classes, new_color, in_queue):
     # 1 color should remain as is
     alpha[C_i] = new_color_classes[0]
 
     for new_color_class in new_color_classes[1:]:
         alpha[new_color] = new_color_class
         update_color(new_color_class, new_color)
-        update_queue(queue, alpha[C_i], new_color_class, C_i, new_color)
+        update_queue(queue, alpha[C_i], new_color_class, C_i, new_color, in_queue)
         new_color += 1
 
     return new_color - 1  # minus 1, since we add 1 one more time after updating the queue
 
 
-def refine_graph(alpha: {int: ["Vertex"]}, color_class_i: int, queue: [int], neighbours: ["Vertex"]):
+def refine_graph(alpha: {int: ["Vertex"]}, color_class_i: int, queue: [int], neighbours: ["Vertex"], in_queue):
     max_color = max(list(alpha.keys())) + 1
     keys = list()
     for key in alpha.keys():
@@ -104,7 +112,8 @@ def refine_graph(alpha: {int: ["Vertex"]}, color_class_i: int, queue: [int], nei
                 new_color_classes[neighbors_with_color_class_i_counter].append(vertex)
 
         if len(new_color_classes.keys()) > 1:  # 1 if all vertices have same amount of neighbors to color_class_i
-            max_color = update_alpha_list_and_queue(alpha, C_i, queue, list(new_color_classes.values()), max_color)
+            max_color = update_alpha_list_and_queue(alpha, C_i, queue,
+                                                    list(new_color_classes.values()), max_color, in_queue)
 
 
 def pre_neighbours(U):
@@ -124,14 +133,14 @@ def pre_neighbours(U):
 
 
 def color_refinement(D: ["Vertex"], I: ["Vertex"], U: "Graph"):
-    alpha = initialization(D, I, U)
-    queue = initialize_queue(alpha)
+    alpha, in_queue = initialization(D, I, U)
+    queue = initialize_queue(alpha, in_queue)
     neighbours = pre_neighbours(U)
 
-    while queue:
-        color_class_i = queue[0]
-        refine_graph(alpha, color_class_i, queue, neighbours)
-        queue = queue[1:]  # Dequeue
+    while not queue.empty():
+        color_class_i = queue.get()
+        refine_graph(alpha, color_class_i, queue, neighbours, in_queue)
+        in_queue[color_class_i] = False
 
     return separate_coloring(alpha, len(U.vertices) // 2)
 

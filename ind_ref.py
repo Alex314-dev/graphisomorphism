@@ -212,7 +212,7 @@ def exec(file_path):
 if __name__ == '__main__':
     start = time()
 
-    graph_name = "cubes6"
+    graph_name = "products72"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     exec(file_path)
 
