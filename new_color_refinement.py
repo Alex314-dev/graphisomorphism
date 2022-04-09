@@ -1,10 +1,8 @@
 import time
-import collections
 
 from graph import *
 from graph_io import *
 
-update_queue_time = 0
 
 def convert_dict_to_list(alpha):
     list_of_lists = []
@@ -65,7 +63,6 @@ def count_neighbors_with_color_class_i(neighbours, color_class_i):
 
 
 def update_queue(queue, C_i_vertices, new_color_class, i, l):
-
     if i in queue:
         queue.append(l)
 
@@ -103,7 +100,7 @@ def update_alpha_list_and_queue(alpha_list, i, queue, new_color_classes, new_col
     return new_color - 1  # minus 1, since we add 1 one more time after updating the queue
 
 
-def refine_graph(alpha_list, color_class_i, queue):
+def refine_graph(alpha_list, color_class_i, queue, neighbours):
     stable = True
 
     max_color = alpha_list[-1][0].colornum  # the last colorclass
@@ -118,46 +115,46 @@ def refine_graph(alpha_list, color_class_i, queue):
         new_color = max_color + 1  # find the new l
         new_color_classes = {}
         for vertex in C_i_vertices:
-            neighbors_with_color_class_i_counter = count_neighbors_with_color_class_i(vertex.neighbours, color_class_i)
+            neighbors_with_color_class_i_counter = count_neighbors_with_color_class_i(neighbours[vertex], color_class_i)
             if neighbors_with_color_class_i_counter not in new_color_classes.keys():
                 new_color_classes[neighbors_with_color_class_i_counter] = [vertex]
             else:
                 new_color_classes[neighbors_with_color_class_i_counter].append(vertex)
 
         if len(new_color_classes.keys()) > 1:  # 1 if all vertices have same amount of neighbors to color_class_i
-            #od = collections.OrderedDict(new_color_classes)
             max_color = update_alpha_list_and_queue(alpha_list, i, queue, list(new_color_classes.values()), new_color)
             stable = False  # the graph is still not stable, since a change has occured in this coloring iteration
-
-
-#def pre_neighbours(G):
-
 
 
 # initialize queue to have k-1 colors (k=#of colors), the longest C_i should not be included in the queue!
 def initialize_queue(alpha_list):
     queue = []
-    in_queue = [False] * (alpha_list[-1][0].colornum + 1)
     index_of_longest = max(enumerate(alpha_list), key=lambda tup: len(tup[1]))[0]
 
     for i in range(len(alpha_list)):
         if i != index_of_longest:
             queue.append(alpha_list[i][0].colornum)
-            in_queue[alpha_list[i][0].colornum] = True
 
-    return queue, in_queue
+    return queue
+
+
+def pre_neighbours(U):
+    neighbours = {}
+    for vertex in U.vertices:
+        neighbours[vertex] = vertex.neighbours
+
+    return neighbours
 
 
 def color_refinement(D: ["Vertex"], I: ["Vertex"], U: "Graph"):
     alpha_list = initialization(D, I, U)
     queue = initialize_queue(alpha_list)  # put the minimum colornum in the queue
+    neighbours = pre_neighbours(U)
 
     while queue:
         color_class_i = queue[0]
-        refine_graph(alpha_list, color_class_i, queue)
+        refine_graph(alpha_list, color_class_i, queue, neighbours)
         queue = queue[1:]  # Dequeue
-
-
 
     return separate_coloring(alpha_list, len(U.vertices) // 2)
 
@@ -238,11 +235,9 @@ def main():
     # print(time.time() - start)
 
     start = time.time()
-    graph_name = "colorref_largeexample_6_960"
+    graph_name = "colorref_largeexample_4_1026"
     file_path = f'sample//{graph_name}.grl'
     execute_2(file_path, graph_name)
-
-    print(f"Update queue time: {update_queue_time}")
 
 
 
