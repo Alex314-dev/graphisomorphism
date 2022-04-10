@@ -1,4 +1,5 @@
-from new_color_refinement import *
+from fast_partition_refinement import *
+# from new_color_refinement import *
 from time import time
 import collections
 
@@ -21,30 +22,9 @@ def get_closest_to_avg_length_vertex_list(dict_colornum_vertices):
 
 
 def get_color_class(dict_colornum_vertices):
-    # find colornum that appears the most
-    # most_frequent = max(dict_colornum_vertices, key = lambda x: len(set(dict_colornum_vertices[x])))
-    # print(f"most_frequent = {most_frequent}")
-
-    dict_candidates = {}
-
-    """
-    OPTION 1 BRANCHING: taking the colornum of with an avg vertex list
-    val = get_closest_to_avg_length_vertex_list(dict_colornum_vertices)
-    index = list(dict_colornum_vertices.values()).index(val)
-    color_class = list(dict_colornum_vertices.keys())[index]
-    """
-
     for colornum, vertex_list in dict_colornum_vertices.items():
         if len(vertex_list) >= 2:
             color_class = colornum
-            # dict_candidates[colornum] = len(vertex_list)
-
-    """least_frequent = inf
-
-    for colornum, length in dict_candidates.items():
-        if length < least_frequent:
-            least_frequent = length
-            color_class = colornum"""
 
     return color_class
 
@@ -79,7 +59,7 @@ def are_twins_or_false_twins(vertex1: "Vertex", vertex2: "Vertex"):
 
 
 def ind_ref(D, I, U, y_to_its_false_twins):
-    alpha = color_refinement(D, I, U)
+    alpha = fast_refinement(D, I, U)
 
     if not is_balanced(alpha):
         return 0
