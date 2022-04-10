@@ -91,7 +91,7 @@ def refine_graph(alpha: {int: ["Vertex"]}, color_class_i: int, queue: [int], nei
     for key in alpha.keys():
         keys.append(key)
     for C_i in keys:  # don't iterate through the newly added color_classes
-        if C_i == color_class_i or len(alpha[C_i]) == 1:
+        if C_i == color_class_i or len(alpha[C_i]) == 2:
             continue
 
         C_i_vertices = alpha[C_i]
@@ -123,7 +123,7 @@ def color_refinement(D: ["Vertex"], I: ["Vertex"], U: "Graph"):
     while queue:
         color_class_i = queue[0]
         refine_graph(alpha, color_class_i, queue, neighbours)
-        queue = queue[1:]  # Dequeue
+        queue = queue[1:]  # TODO: Dequeue might need to happen before refinement
 
     return separate_coloring(alpha, len(U.vertices) // 2)
 
