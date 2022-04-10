@@ -1,24 +1,11 @@
-from fast_partition_refinement import *
-# from new_color_refinement import *
+# from fast_partition_refinement import *
+from new_color_refinement import *
 from time import time
 import collections
-
-'''
-Disjoint union of two graphs
-'''
 
 
 def union(G, H):
     return G + H
-
-
-def get_closest_to_avg_length_vertex_list(dict_colornum_vertices):
-    sum_lengths = sum(len(vertices_list) for vertices_list in dict_colornum_vertices.values())
-    avg = sum_lengths // len(dict_colornum_vertices.keys())
-
-    val = min(dict_colornum_vertices.values(), key=lambda vertices_list: abs(len(vertices_list) - avg))
-
-    return val
 
 
 def get_color_class(dict_colornum_vertices):
@@ -39,14 +26,14 @@ def have_same_neighborhood_no_other(vertex1, vertex2):
     neighborhood_vertex2 = vertex2.neighbours
     neighborhood_vertex2.remove(vertex1)
 
-    return collections.Counter(neighborhood_vertex1) == collections.Counter(neighborhood_vertex2)  # O(n)
+    return collections.Counter(neighborhood_vertex1) == collections.Counter(neighborhood_vertex2)
 
 
 def have_exactly_same_neighborhood(vertex1, vertex2):
     neighborhood_vertex1 = vertex1.neighbours
     neighborhood_vertex2 = vertex2.neighbours
 
-    return collections.Counter(neighborhood_vertex1) == collections.Counter(neighborhood_vertex2)  # O(n)
+    return collections.Counter(neighborhood_vertex1) == collections.Counter(neighborhood_vertex2)
 
 
 def are_twins(vertex1, vertex2):
@@ -54,12 +41,11 @@ def are_twins(vertex1, vertex2):
 
 
 def are_twins_or_false_twins(vertex1: "Vertex", vertex2: "Vertex"):
-    # if they have a common edge, they won't have exactly the same neighborhood
     return have_exactly_same_neighborhood(vertex1, vertex2) or are_twins(vertex1, vertex2)
 
 
 def ind_ref(D, I, U, y_to_its_false_twins):
-    alpha = fast_refinement(D, I, U)
+    alpha = color_refinement(D, I, U)
 
     if not is_balanced(alpha):
         return 0
@@ -67,8 +53,8 @@ def ind_ref(D, I, U, y_to_its_false_twins):
         return 1
 
     color_class = get_color_class(alpha[0])  # TODO: improve
-
     x = alpha[0][color_class][0]  # the first vertex in G with color `color_class` ~ TODO: improve
+
     y_to_automorphism_count = dict()
     for i in range(len(U.vertices) // 2, len(U.vertices)):
         y_to_automorphism_count[U.vertices[i]] = -1
@@ -86,11 +72,6 @@ def ind_ref(D, I, U, y_to_its_false_twins):
     return num
 
 
-'''
-If 2 graphs are discrete
-'''
-
-
 def is_bijection(alpha: [dict]):
     for key in alpha[0].keys():
         if len(alpha[0][key]) != 1:
@@ -98,33 +79,11 @@ def is_bijection(alpha: [dict]):
     return True
 
 
-'''
-If 2 graphs are possibly isomorphic
-'''
-
-
 def is_balanced(alpha: [dict]):
     for key in alpha[0].keys():
         if len(alpha[0][key]) != len(alpha[1][key]):
             return False
     return True
-
-
-'''
-Testing purposes - K_n
-'''
-
-
-def complete_graph(n: int) -> Graph:
-    G = Graph(False, n)
-    if n <= 1:
-        return G
-
-    gv = sorted(list(G.vertices), key=lambda v: v.label)
-    for i in range(0, len(gv)):
-        for j in range(i + 1, len(gv)):
-            G.add_edge(Edge(gv[i], gv[j]))
-    return G
 
 
 def build_false_twins(H):
@@ -175,12 +134,12 @@ def find_isomorphic_graphs(graphs):
 
 
 def iso_print(isomorphic_graphs_groups):
-    print('Sets of possibly isomorphic graphs:')
+    print('Answer:')
     for group, count_automorphism in isomorphic_graphs_groups:
         print(sorted(group), count_automorphism)
 
 
-def exec(file_path):
+def execute(file_path):
     with open(file_path) as f:
         L = load_graph(f, read_list=True)
         graphs = L[0]
@@ -192,8 +151,8 @@ def exec(file_path):
 if __name__ == '__main__':
     start = time()
 
-    graph_name = "cubes6"
+    graph_name = "torus144"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
-    exec(file_path)
+    execute(file_path)
 
     print(time() - start)

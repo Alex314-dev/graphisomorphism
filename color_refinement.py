@@ -55,8 +55,8 @@ def color_refinement(G: "Graph"):
                 for j in range(1, len(separated)):
                     alpha[i] = separated[j]
                     i = i + 1
-    end = time.time()
-    print("Coloring time: ", end-start)
+
+    print("Coloring time: ", time.time() - start)
 
 
 def sorted_neighbour_coloring(v: "Vertex") -> [int]:
@@ -112,7 +112,7 @@ def color_refinement_decision(graph_to_coloring: {int: [int]}):
 
 if __name__ == '__main__':
     start = time.time()
-    with open("./SampleGraphSetBranching/products72.grl") as f:
+    with open("./SignOffColRefBackup/SignOffColRefBackup6.grl") as f:
         graph_list = read_graph_list(Graph, f)
     color_refinement_main(graph_list[0])
     print("Total time: ", time.time() - start)
