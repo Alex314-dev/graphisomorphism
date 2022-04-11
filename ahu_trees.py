@@ -216,8 +216,10 @@ def exec_ahu_trees_pair(G, H):
         return iso, 0
 
 
-def exec_ahu_trees(file_path):
-    with open(f'{file_path}.grl') as f:
+#does not include an is_tree check for the graphs
+#inludes printing
+def exec_ahu_trees_file(file_path):
+    with open(file_path) as f:
         L = load_graph(f, read_list=True)
         graphs = L[0]
 
@@ -249,6 +251,58 @@ def exec_ahu_trees(file_path):
             i += 1
 
 
+#includes is_tree check
+#does not include printing
+def exec_ahu_trees_graphs(graphs):
+    iso_groups = {}
+    auto_list = []
+    for g_id in range(0, len(graphs)):
+        for h_id in range(g_id + 1, len(graphs)):
+            G = graphs[g_id]
+            H = graphs[h_id]
+
+            if is_graph_tree(G) and is_graph_tree(H):
+                iso, auto = exec_ahu_trees_pair(G, H)
+
+                if iso:
+                    graph_already_iso_bool, group = graph_already_iso(g_id, iso_groups.values())
+                    if not graph_already_iso_bool and g_id not in iso_groups.keys():
+                        iso_groups[g_id] = [h_id]
+                        auto_list.append(auto)
+
+                    elif g_id in iso_groups.keys():
+                        iso_groups[g_id].append(h_id)
+                    else:
+                        key = list(iso_groups.keys())[list(iso_groups.values()).index(group)]
+                        iso_groups[key].append(h_id)
+
+    if len(iso_groups.keys()) != 0:
+        print(iso_groups)
+        isomorphic_graphs_groups = []
+        graphs_id_to_remove = []
+
+        i = 0
+        for key, value in iso_groups.items():
+            iso_group_auto_tuple, graphs_id_with_trees = tuple_creator(key, value, auto_list, i)
+            graphs_id_to_remove = graphs_id_to_remove + graphs_id_with_trees
+            isomorphic_graphs_groups.append(iso_group_auto_tuple)
+            i += 1
+
+        return isomorphic_graphs_groups, graphs_id_to_remove
+    return [], graphs
+
+
+def tuple_creator(key: int, values: [int], auto_list: [int], i: int):
+    iso_group = [key]
+
+    for value in values:
+        iso_group.append(value)
+
+    iso_group_auto_tuple = (iso_group, auto_list[i])
+
+    return iso_group_auto_tuple, iso_group
+
+
 def print_iso_groups(key: int, values: [int], auto_list: [int], i: int):
     values_str = ""
     for value in values:
@@ -264,7 +318,7 @@ def graph_already_iso(g_id: int, iso_graphs: [[int]]):
 
 
 def exec_ahu_trees_2_graphs(file_path):
-    with open(f'{file_path}.grl') as f:
+    with open(file_path) as f:
         L = load_graph(f, read_list=True)
         graphs = L[0]
         G = graphs[1]
@@ -275,5 +329,6 @@ def exec_ahu_trees_2_graphs(file_path):
 
 
 if __name__ == '__main__':
-    exec_ahu_trees(f'SampleGraphSetBranching//bigtrees3')
+    #exec_ahu_trees_file(f'SampleGraphSetBranching//bigtrees3.grl')
+    exec_ahu_trees_graphs()
 

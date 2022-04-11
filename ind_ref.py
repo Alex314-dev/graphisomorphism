@@ -1,5 +1,6 @@
 from new_color_refinement import *
 from time import time
+from ahu_trees import *
 import collections
 
 '''
@@ -161,7 +162,7 @@ def build_false_twins(H):
     return y_to_its_false_twins
 
 
-def find_isomorphic_graphs(graphs):
+def find_isomorphic_graphs(graphs, tree_ids: [int]):
     isomorphic_graphs_groups = []
     group = []  # list of isomorphic graphs
 
@@ -169,13 +170,13 @@ def find_isomorphic_graphs(graphs):
     selected = [False] * len(graphs)
 
     for index_graph1 in range(0, len(graphs) - 1):
-        if selected[index_graph1]:
+        if selected[index_graph1] or index_graph1 in tree_ids:
             continue
 
         group_count_automorphism = 0
 
         for index_graph2 in range(index_graph1 + 1, len(graphs)):
-            if index_graph1 != index_graph2:
+            if index_graph2 not in tree_ids and index_graph1 != index_graph2:
                 U = graphs[index_graph1] + graphs[index_graph2]
                 y_to_its_false_twins = build_false_twins(U)
                 count_automorphism = ind_ref([], [], U, y_to_its_false_twins)
@@ -205,15 +206,16 @@ def exec(file_path):
         L = load_graph(f, read_list=True)
         graphs = L[0]
 
-        isomorphic_graphs_groups = find_isomorphic_graphs(graphs)
+        isomorphic_graphs_groups, graphs_no_trees = exec_ahu_trees_graphs(graphs)
+        isomorphic_graphs_groups = isomorphic_graphs_groups + find_isomorphic_graphs(graphs, graphs_no_trees)
         iso_print(isomorphic_graphs_groups)
 
 
 if __name__ == '__main__':
-    start = time()
+    start = time.time()
 
-    graph_name = "products72"
+    graph_name = "test"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     exec(file_path)
 
-    print(time() - start)
+    print(time.time() - start)
