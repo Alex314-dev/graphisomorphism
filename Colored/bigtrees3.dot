@@ -246,7 +246,7 @@ graph G {
     17--15 [penwidth=2,label="None"]
     18--11 [penwidth=2,label="None"]
     19--2 [penwidth=2,label="None"]
-    19--20 [penwidth=2,label="None"]
+    2--20 [penwidth=2,label="None"]
     2--21 [penwidth=2,label="None"]
     21--22 [penwidth=2,label="None"]
     22--23 [penwidth=2,label="None"]
