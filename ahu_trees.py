@@ -245,8 +245,16 @@ def exec_ahu_trees(file_path):
         print("Isomorphic groups of tree graphs:")
         i = 0
         for key, value in iso_groups.items():
-            print(f"[{key}, {list(value)}] automorphisms: {auto_list[i]}")
+            print_iso_groups(key, value, auto_list, i)
             i += 1
+
+
+def print_iso_groups(key: int, values: [int], auto_list: [int], i: int):
+    values_str = ""
+    for value in values:
+        values_str += f', {str(value)}'
+    print(f"[{key}{values_str}] automorphisms: {auto_list[i]}")
+
 
 def graph_already_iso(g_id: int, iso_graphs: [[int]]):
     for groups in iso_graphs:
@@ -267,6 +275,5 @@ def exec_ahu_trees_2_graphs(file_path):
 
 
 if __name__ == '__main__':
-    start = time.time()
     exec_ahu_trees(f'SampleGraphSetBranching//bigtrees3')
 
