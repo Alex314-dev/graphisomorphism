@@ -1,3 +1,5 @@
+import math
+
 from new_color_refinement import *
 from time import time
 import collections
@@ -78,7 +80,7 @@ def are_twins_or_false_twins(vertex1: "Vertex", vertex2: "Vertex"):
     return have_exactly_same_neighborhood(vertex1, vertex2) or are_twins(vertex1, vertex2)
 
 
-def ind_ref(D, I, U, y_to_its_false_twins):
+def ind_ref(D, I, U, y_to_its_false_twins, auromorphism_was_counted):
     alpha = color_refinement(D, I, U)
 
     if not is_balanced(alpha):
@@ -99,7 +101,11 @@ def ind_ref(D, I, U, y_to_its_false_twins):
             continue
         D_ = D + [x]
         I_ = I + [y]
-        temp_sol = ind_ref(D_, I_, U, y_to_its_false_twins)
+        temp_sol = ind_ref(D_, I_, U, y_to_its_false_twins, auromorphism_was_counted)
+        if temp_sol != 0:  # if an isomorphism was found already (then positive) and/or auromorphism was counted (then negative), just to cover both cases, the recursion could confuse here
+            if auromorphism_was_counted:
+                return -1 * math.inf  # Just to make sure that we get a negative number, for the check in the "find_isomorphic_graphs" function
+
         for twin_of_y in y_to_its_false_twins[y]:
             y_to_automorphism_count[twin_of_y] = temp_sol
         num = num + temp_sol
@@ -176,9 +182,14 @@ def find_isomorphic_graphs(graphs):
 
         for index_graph2 in range(index_graph1 + 1, len(graphs)):
             if index_graph1 != index_graph2:
+                auromorphism_was_counted = group_count_automorphism > 0
                 U = graphs[index_graph1] + graphs[index_graph2]
                 y_to_its_false_twins = build_false_twins(U)
-                count_automorphism = ind_ref([], [], U, y_to_its_false_twins)
+                count_automorphism = ind_ref([], [], U, y_to_its_false_twins, auromorphism_was_counted)
+
+                if count_automorphism < 0:  # If the number of automorphisms was already counted, then we will get -1
+                    group.append(index_graph2)
+                    selected[index_graph2] = True
 
                 if count_automorphism:  # if the number of automorphisms is more than 0
                     group_count_automorphism = count_automorphism
