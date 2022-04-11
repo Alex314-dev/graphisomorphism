@@ -97,12 +97,6 @@ def ahu_encoding(root: Vertex):
 
     for child in root.children:
         labels.append(ahu_encoding(child))
-        # labels = sorted(labels)
-        # encoding = ""
-        # for label in labels:
-        #     encoding += str(label)
-        # child.aut = int(encoding)
-        # print(child.aut)
 
     labels = sorted(labels)
 
@@ -129,7 +123,6 @@ def ahu_iso(G: Graph, U: Graph):
 
     for center in u_centers:
         u_root = root_tree(U, center, None, neighbours_u)
-        #print(f"Root U: {g_root.label}")
         u_encoded = ahu_encoding(u_root)
 
         if g_encoded == u_encoded:
@@ -184,7 +177,6 @@ def aut_trees(root: Vertex):
     for child in root.children:
 
         child_enc = child.encoding
-        #print(f"Child {child} of {root} encoding: {child.encoding}")
         if child_enc != 10:
             if child_enc not in root_classification.keys():
                 root_classification[child_enc] = [child]
@@ -236,10 +228,7 @@ def exec_ahu_trees(file_path):
                 G = graphs[g_id]
                 H = graphs[h_id]
 
-                if is_graph_tree(G):
-                    iso, auto = exec_ahu_trees_pair(G, H)
-                else:
-                    print("not tree")
+                iso, auto = exec_ahu_trees_pair(G, H)
 
                 if iso:
                     graph_already_iso_bool, group = graph_already_iso(g_id, iso_groups.values())
@@ -253,12 +242,11 @@ def exec_ahu_trees(file_path):
                         key = list(iso_groups.keys())[list(iso_groups.values()).index(group)]
                         iso_groups[key].append(h_id)
 
-        print("Isomorphic groups:")
+        print("Isomorphic groups of tree graphs:")
         i = 0
         for key, value in iso_groups.items():
             print(f"[{key}, {list(value)}] automorphisms: {auto_list[i]}")
             i += 1
-
 
 def graph_already_iso(g_id: int, iso_graphs: [[int]]):
     for groups in iso_graphs:
@@ -280,12 +268,5 @@ def exec_ahu_trees_2_graphs(file_path):
 
 if __name__ == '__main__':
     start = time.time()
-    exec_ahu_trees(f'SampleGraphSetBranching//trees11')
-    # if tree:
-    #     iso, auto = exec_ahu_trees(G, H)
-    #     end = time.time()
-    #     if iso:
-    #         total = end - start
-    #         print(f"The graphs are isomorphic and have {auto} automorphisms \n"
-    #               f"Calculated in {total}")
+    exec_ahu_trees(f'SampleGraphSetBranching//bigtrees3')
 
