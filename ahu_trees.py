@@ -1,3 +1,5 @@
+import time
+
 from graph import *
 from graph_io import *
 import math
@@ -118,7 +120,7 @@ def ahu_iso(G: Graph, U: Graph):
     neighbours_u = pre_neighbours_id(U)
 
     g_centers = tree_centers(G, neighbours_g)
-    print(f"Roots G: {len(g_centers)}")
+
     u_centers = tree_centers(U, neighbours_u)
 
     g_root = root_tree(G, g_centers[0], None,  neighbours_g)
@@ -131,8 +133,8 @@ def ahu_iso(G: Graph, U: Graph):
         u_encoded = ahu_encoding(u_root)
 
         if g_encoded == u_encoded:
-            if len(g_centers) > 1:
-                return True, g_centers
+            return True, g_centers
+
     return False, g_centers
 
 
@@ -151,12 +153,14 @@ def exec_aut(centers: [Vertex], G: Graph):
 
 
 def create_new_root(G, ex_root1, ex_root2, root_bridge):
-    new_root = Vertex(G, len(G.vertices) + 1, 1)
+    new_root = Vertex(G, len(G.vertices), 1)
     G += new_root
     edge1 = Edge(new_root, ex_root1)
     edge2 = Edge(new_root, ex_root2)
     G += edge1
     G += edge2
+
+    G.del_edge(root_bridge)
 
     new_root.children = [ex_root1, ex_root2]
     new_root.parent = None
@@ -206,23 +210,73 @@ def exec_is_tree(file_path):
         with open(f'Colored//{file_path}.dot', 'w') as d:
              write_dot(G, d)
 
-        # neighbours_g = pre_neighbours_id(G)
-        #
-        # g_centers = tree_centers(G, neighbours_g)
-        # g_root = root_tree(G, g_centers[0], None, neighbours_g)
-        # g_encoded = ahu_encoding(g_root)
-        #root = None
-        iso, centers = ahu_iso(G, U)
+        if is_graph_tree(G):
+            return True, G, U
+        else:
+            return False, G, U
 
-        return exec_aut(centers, G)
-        # print(f"Isomorphic: {iso} \n"
-        #       f"Automorphisms: {root.aut}")
-        #for v in range(0, len(G.vertices)):
-            #print(G.vertices[v].aut)
 
-        #return tree_centers(G, neighbours_g)
-        #return is_graph_tree(G)
+def exec_ahu_trees_pair(G, H):
+    iso, centers = ahu_iso(G, H)
+    if iso:
+        return iso, exec_aut(centers, G)
+    else:
+        return iso, 0
+
+
+def exec_ahu_trees(file_path):
+    with open(f'{file_path}.grl') as f:
+        L = load_graph(f, read_list=True)
+        graphs = L[0]
+
+        iso_groups = {}
+        auto_list = []
+        for g_id in range(0, len(graphs)):
+            for h_id in range(g_id + 1, len(graphs)):
+                G = graphs[g_id]
+                H = graphs[h_id]
+
+                if is_graph_tree(G):
+                    iso, auto = exec_ahu_trees_pair(G, H)
+                else:
+                    print("not tree")
+
+                if iso:
+                    #graph_already_iso(g_id)
+                    if g_id not in iso_groups.values() and g_id not in iso_groups.keys():
+                        iso_groups[g_id] = [h_id]
+                        auto_list.append(auto)
+
+                    elif g_id in iso_groups.keys():
+                        iso_groups[g_id].append(h_id)
+                    else:
+                        iso_groups[list(iso_groups.values()).index(g_id)].append(h_id)
+
+        print("Isomorphic groups:")
+        i = 0
+        for key, value in iso_groups.items():
+            print(f"[{key}, {list(value)}] automorphisms: {auto_list[i]}")
+            i += 1
+
+def exec_ahu_trees_2_graphs(file_path):
+    with open(f'{file_path}.grl') as f:
+        L = load_graph(f, read_list=True)
+        graphs = L[0]
+        G = graphs[1]
+        H = graphs[5]
+
+        iso, auto = exec_ahu_trees_pair(G, H)
+        print(auto)
+
 
 if __name__ == '__main__':
-    print(exec_is_tree(f'bigtrees3'))
+    start = time.time()
+    exec_ahu_trees(f'SampleGraphSetBranching//trees11')
+    # if tree:
+    #     iso, auto = exec_ahu_trees(G, H)
+    #     end = time.time()
+    #     if iso:
+    #         total = end - start
+    #         print(f"The graphs are isomorphic and have {auto} automorphisms \n"
+    #               f"Calculated in {total}")
 

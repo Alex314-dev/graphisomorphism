@@ -314,6 +314,26 @@ class Graph(object):
         edge.head._add_incidence(edge)
         edge.tail._add_incidence(edge)
 
+
+    def del_edge(self, edge: "Edge"):
+        #remove edd and the incidence of its vertices
+        self._e.remove(edge)
+
+        head = edge.head
+        tail = edge.tail
+
+        v = head._incidence.values()
+        for value in v:
+            if edge in value:
+                head._incidence.pop(tail)
+                break
+        vt = tail._incidence.values()
+
+        for value in vt:
+            if edge in value:
+                tail._incidence.pop(head)
+                break
+
     def __add__(self, other: "Graph") -> "Graph":
         """
         Make a disjoint union of two graphs.
