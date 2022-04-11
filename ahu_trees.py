@@ -256,40 +256,52 @@ def exec_ahu_trees_file(file_path):
 def exec_ahu_trees_graphs(graphs):
     iso_groups = {}
     auto_list = []
+    graphs_id_to_remove = []
     for g_id in range(0, len(graphs)):
         for h_id in range(g_id + 1, len(graphs)):
             G = graphs[g_id]
             H = graphs[h_id]
 
             if is_graph_tree(G) and is_graph_tree(H):
+
                 iso, auto = exec_ahu_trees_pair(G, H)
 
                 if iso:
                     graph_already_iso_bool, group = graph_already_iso(g_id, iso_groups.values())
+
                     if not graph_already_iso_bool and g_id not in iso_groups.keys():
                         iso_groups[g_id] = [h_id]
+                        graphs_id_to_remove.append(g_id)
+                        graphs_id_to_remove.append(h_id)
                         auto_list.append(auto)
 
                     elif g_id in iso_groups.keys():
                         iso_groups[g_id].append(h_id)
+                        graphs_id_to_remove.append(h_id)
                     else:
                         key = list(iso_groups.keys())[list(iso_groups.values()).index(group)]
                         iso_groups[key].append(h_id)
+                        graphs_id_to_remove.append(h_id)
+
+            elif is_graph_tree(G) and g_id not in graphs_id_to_remove:
+                graphs_id_to_remove.append(g_id)
+
+            elif is_graph_tree(H) and h_id not in graphs_id_to_remove:
+                graphs_id_to_remove.append(h_id)
+
+
 
     if len(iso_groups.keys()) != 0:
-        print(iso_groups)
         isomorphic_graphs_groups = []
-        graphs_id_to_remove = []
 
         i = 0
         for key, value in iso_groups.items():
-            iso_group_auto_tuple, graphs_id_with_trees = tuple_creator(key, value, auto_list, i)
-            graphs_id_to_remove = graphs_id_to_remove + graphs_id_with_trees
+            iso_group_auto_tuple = tuple_creator(key, value, auto_list, i)
             isomorphic_graphs_groups.append(iso_group_auto_tuple)
             i += 1
 
         return isomorphic_graphs_groups, graphs_id_to_remove
-    return [], graphs
+    return [], graphs_id_to_remove
 
 
 def tuple_creator(key: int, values: [int], auto_list: [int], i: int):
@@ -300,7 +312,7 @@ def tuple_creator(key: int, values: [int], auto_list: [int], i: int):
 
     iso_group_auto_tuple = (iso_group, auto_list[i])
 
-    return iso_group_auto_tuple, iso_group
+    return iso_group_auto_tuple
 
 
 def print_iso_groups(key: int, values: [int], auto_list: [int], i: int):
