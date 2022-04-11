@@ -10,6 +10,15 @@ def pre_neighbours_id(U):
 
     return neighbours
 
+
+def pre_neighbours(U):
+    neighbours = {}
+    for vertex in U.vertices:
+        neighbours[vertex] = vertex.neighbours
+
+    return neighbours
+
+
 def is_graph_tree(G: Graph):
     visited = [False] * len(G.vertices)
     neighbours = pre_neighbours(G)
@@ -64,11 +73,40 @@ def tree_centers(tree: Graph, neighbours: {Vertex: [Vertex]}):
 
     return leaves
 
-def root_tree(tree: Graph, center: Vertex):
-    return
 
-def ahu_encoding(rooted_tree: Graph):
-    return
+def root_tree(tree: Graph, center: Vertex, parent: Vertex, neighbours: {Vertex: [Vertex]}):
+    center.parent = None
+    center.children = []
+
+    for neighbour in neighbours[center.label]:
+        if parent is not None and neighbour.label == parent.label:
+            continue
+        neighbour.parent = center
+        neighbour.children = []
+        center.children.append(neighbour)
+        root_tree(tree, neighbour, center, neighbours)
+    return center
+
+
+
+def ahu_encoding(root: Vertex):
+    if root is None:
+        return ""
+    labels = []
+
+    for child in root.children:
+        print(f"Child node: {child.label}")
+        print(f"Parent node: {root.label}")
+        labels.append(ahu_encoding(child))
+        print(labels)
+
+    labels = sorted(labels)
+
+    result = ""
+    for label in labels:
+        result += str(label)
+
+    return int(f"1{result}0")
 
 
 def ahu_iso(G: Graph, U: Graph):
@@ -78,30 +116,40 @@ def ahu_iso(G: Graph, U: Graph):
     g_centers = tree_centers(G, neighbours_g)
     u_centers = tree_centers(U, neighbours_u)
 
-    g_rooted = root_tree(G, g_centers[0])
-    g_encoded = ahu_encoding(g_rooted)
+    g_root = root_tree(G, g_centers[0], None,  neighbours_g)
+    print(f"Root: {g_root}")
+    g_encoded = ahu_encoding(g_root)
+    print("G encoded")
 
     for center in u_centers:
-        u_rooted = root_tree(U, center)
-        u_encoded = ahu_encoding(u_rooted)
+        u_root = root_tree(U, center, None, neighbours_u)
+        u_encoded = ahu_encoding(u_root)
+        print("U encoded")
 
         if g_encoded == u_encoded:
+            print(g_encoded)
             return True
     return False
 
 def exec_is_tree(file_path):
     with open(f'SampleGraphSetBranching//{file_path}.grl') as f:
         L = load_graph(f, read_list=True)
-        G = L[0][0]
+        G = L[0][2]
+        U = L[0][2]
 
         with open(f'Colored//{file_path}.dot', 'w') as d:
              write_dot(G, d)
 
-        neighbours_g = pre_neighbours_id(G)
+        # neighbours_g = pre_neighbours_id(G)
+        #
+        # g_centers = tree_centers(G, neighbours_g)
+        # g_root = root_tree(G, g_centers[0], None, neighbours_g)
+        # g_encoded = ahu_encoding(g_root)
+        return ahu_iso(G, U)
 
-        return tree_centers(G, neighbours_g)
+        #return tree_centers(G, neighbours_g)
         #return is_graph_tree(G)
 
 if __name__ == '__main__':
-    print(exec_is_tree(f'trees36'))
+    print(exec_is_tree(f'trees11'))
 
