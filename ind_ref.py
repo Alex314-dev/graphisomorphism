@@ -1,5 +1,5 @@
-# from fast_partition_refinement import *
-from new_color_refinement import *
+from fast_partition_refinement import *
+# from new_color_refinement import *
 from time import time
 import collections
 
@@ -13,7 +13,7 @@ def get_color_class(dict_colornum_vertices):
         if len(vertex_list) >= 2:
             color_class = colornum
 
-    return color_class
+    return color_class  # mathematical certainty that it will be assigned a value
 
 
 def have_common_edge(vertex1, vertex2):
@@ -44,22 +44,28 @@ def are_twins_or_false_twins(vertex1: "Vertex", vertex2: "Vertex"):
     return have_exactly_same_neighborhood(vertex1, vertex2) or are_twins(vertex1, vertex2)
 
 
+# Branching algorithm with twin pruning.
+# The general idea is the same with what was presented on the lecture.
+# But we misunderstood something and built a very cool thing. We are not counting twins and comparing them;
+# we are storing the twins of all the vertices and if for one of the twins if we have computed to automorphism count
+# we use that solution for the other twin as well. As the coarsest stable coloring should satisfy the neighbours
+# and twins have the same neighbourhood.
 def ind_ref(D, I, U, y_to_its_false_twins):
-    alpha = color_refinement(D, I, U)
+    alpha = fast_refinement(D, I, U)
 
     if not is_balanced(alpha):
         return 0
     if is_bijection(alpha):
         return 1
 
-    color_class = get_color_class(alpha[0])  # TODO: improve
-    x = alpha[0][color_class][0]  # the first vertex in G with color `color_class` ~ TODO: improve
+    color_class = get_color_class(alpha[0])     # TODO: improve
+    x = alpha[0][color_class][0]                # TODO: improve
 
     y_to_automorphism_count = dict()
     for i in range(len(U.vertices) // 2, len(U.vertices)):
         y_to_automorphism_count[U.vertices[i]] = -1
     num = 0
-    for y in alpha[1][color_class]:  # vertices in H with color `color_class`
+    for y in alpha[1][color_class]:              # vertices in the second graph with color `color_class`
         if y_to_automorphism_count[y] != -1:
             num = num + y_to_automorphism_count[y]
             continue
@@ -104,7 +110,7 @@ def find_isomorphic_graphs(graphs):
     isomorphic_graphs_groups = []
     group = []  # list of isomorphic graphs
 
-    # the graphs that were already added to groups, should not be compared again to other graphs
+    # the graphs that were already added to the groups, should not be compared again to other graphs
     selected = [False] * len(graphs)
 
     for index_graph1 in range(0, len(graphs) - 1):
