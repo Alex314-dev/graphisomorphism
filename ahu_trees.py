@@ -242,21 +242,30 @@ def exec_ahu_trees(file_path):
                     print("not tree")
 
                 if iso:
-                    #graph_already_iso(g_id)
-                    if g_id not in iso_groups.values() and g_id not in iso_groups.keys():
+                    graph_already_iso_bool, group = graph_already_iso(g_id, iso_groups.values())
+                    if not graph_already_iso_bool and g_id not in iso_groups.keys():
                         iso_groups[g_id] = [h_id]
                         auto_list.append(auto)
 
                     elif g_id in iso_groups.keys():
                         iso_groups[g_id].append(h_id)
                     else:
-                        iso_groups[list(iso_groups.values()).index(g_id)].append(h_id)
+                        key = list(iso_groups.keys())[list(iso_groups.values()).index(group)]
+                        iso_groups[key].append(h_id)
 
         print("Isomorphic groups:")
         i = 0
         for key, value in iso_groups.items():
             print(f"[{key}, {list(value)}] automorphisms: {auto_list[i]}")
             i += 1
+
+
+def graph_already_iso(g_id: int, iso_graphs: [[int]]):
+    for groups in iso_graphs:
+        if g_id in groups:
+            return True, groups
+    return False, []
+
 
 def exec_ahu_trees_2_graphs(file_path):
     with open(f'{file_path}.grl') as f:
