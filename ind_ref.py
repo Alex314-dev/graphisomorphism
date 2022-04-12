@@ -18,36 +18,23 @@ def generating_set_x(U):
         y_to_its_orbits[l] = set()
 
     generate_automorphism([], [], U)
-    result = order_computation()
+    result = order_computation(X)
     X = list()
     return result
 
 
-def order_computation():
-    global X
-    a = FindNonTrivialOrbit(X)
+def order_computation(permutation: "permutation"):
+    nontrivial_found = False
+    for p in permutation:
+        if not p.istrivial():
+            nontrivial_found = True
+    if not nontrivial_found:
+        return 1
+    a = FindNonTrivialOrbit(permutation)
     a = 0 if a is None else a
-    orb_a = Orbit(X, a, False)
-    stab_a = Stabilizer(X, a)                     # I should not just take the length of stab_a
-    return order_of_stabilizer(stab_a) * len(orb_a)     # Orbit-Stabilizer Theorem
-
-
-def get_disjoint_permutations(permutations):
-    product = reduce((lambda x, y: x * y), permutations)
-    disjoint_cycles = product.cycles()
-
-    return disjoint_cycles
-
-
-def order_of_stabilizer(stab):
-    disjoint_cycles = get_disjoint_permutations(stab)
-
-    total_order = 1
-    for cycle in disjoint_cycles:
-        order_cycle = len(cycle)
-        total_order *= math.factorial(order_cycle)
-
-    return total_order
+    orb_a = Orbit(permutation, a, False)
+    stab_a = Stabilizer(permutation, a)             # I should not just take the length of stab_a
+    return order_computation(stab_a) * len(orb_a)   # Orbit-Stabilizer Theorem
 
 
 # TODO
@@ -339,7 +326,7 @@ def execute(file_path):
 if __name__ == '__main__':
     start = time.time()
 
-    graph_name = "cubes5"
+    graph_name = "wheeljoin14"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     execute(file_path)
 
