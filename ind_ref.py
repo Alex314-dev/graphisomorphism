@@ -1,8 +1,8 @@
 from fast_partition_refinement import *
-from time import time
 from ahu_trees import *
 from basicpermutationgroup import *
 import collections
+from functools import reduce
 
 
 global y_to_its_orbits
@@ -29,11 +29,25 @@ def order_computation():
     a = 0 if a is None else a
     orb_a = Orbit(X, a, False)
     stab_a = Stabilizer(X, a)                     # I should not just take the length of stab_a
-    return order_of_stab(stab_a) * len(orb_a)     # Orbit-Stabilizer Theorem
+    return order_of_stabilizer(stab_a) * len(orb_a)     # Orbit-Stabilizer Theorem
 
 
-def order_of_stab(stab_a):
-    return len(stab_a)
+def get_disjoint_permutations(permutations):
+    product = reduce((lambda x, y: x * y), permutations)
+    disjoint_cycles = product.cycles()
+
+    return disjoint_cycles
+
+
+def order_of_stabilizer(stab):
+    disjoint_cycles = get_disjoint_permutations(stab)
+
+    total_order = 1
+    for cycle in disjoint_cycles:
+        order_cycle = len(cycle)
+        total_order *= math.factorial(order_cycle)
+
+    return total_order
 
 
 # TODO
@@ -323,7 +337,7 @@ def execute(file_path):
 if __name__ == '__main__':
     start = time.time()
 
-    graph_name = "cubes8"
+    graph_name = "cubes5"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     execute(file_path)
 
