@@ -267,9 +267,9 @@ def exec_ahu_trees_graphs(graphs):
                 iso, auto = exec_ahu_trees_pair(G, H)
 
                 if iso:
-                    graph_already_iso_bool, group = graph_already_iso(g_id, iso_groups.values())
+                    graph_already_iso_bool_g, group = graph_already_iso(g_id, iso_groups.values())
 
-                    if not graph_already_iso_bool and g_id not in iso_groups.keys():
+                    if not graph_already_iso_bool_g and g_id not in iso_groups.keys():
                         iso_groups[g_id] = [h_id]
                         graphs_id_to_remove.append(g_id)
                         graphs_id_to_remove.append(h_id)
@@ -280,16 +280,15 @@ def exec_ahu_trees_graphs(graphs):
                         graphs_id_to_remove.append(h_id)
                     else:
                         key = list(iso_groups.keys())[list(iso_groups.values()).index(group)]
-                        iso_groups[key].append(h_id)
-                        graphs_id_to_remove.append(h_id)
+                        if not graph_already_iso_value(h_id, iso_groups[key]):
+                            iso_groups[key].append(h_id)
+                            graphs_id_to_remove.append(h_id)
 
             elif is_graph_tree(G) and g_id not in graphs_id_to_remove:
                 graphs_id_to_remove.append(g_id)
 
             elif is_graph_tree(H) and h_id not in graphs_id_to_remove:
                 graphs_id_to_remove.append(h_id)
-
-
 
     if len(iso_groups.keys()) != 0:
         isomorphic_graphs_groups = []
@@ -302,6 +301,10 @@ def exec_ahu_trees_graphs(graphs):
 
         return isomorphic_graphs_groups, graphs_id_to_remove
     return [], graphs_id_to_remove
+
+
+def graph_already_iso_value(h_id: int, values: [int]):
+    return h_id in values
 
 
 def tuple_creator(key: int, values: [int], auto_list: [int], i: int):

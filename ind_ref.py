@@ -214,7 +214,7 @@ def exec(file_path):
 if __name__ == '__main__':
     start = time.time()
 
-    graph_name = "bigtrees3"
+    graph_name = "cubes5"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     exec(file_path)
 
