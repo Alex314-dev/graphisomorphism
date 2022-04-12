@@ -4,13 +4,28 @@ from basicpermutationgroup import *
 import collections
 
 
+global y_to_its_orbits
 global X
+y_to_its_orbits = dict()
 X = list()
+
+
+def generating_set_x(U):
+    global X
+    global y_to_its_orbits
+    for l in range(len(U.vertices) // 2, len(U.vertices)):
+        y_to_its_orbits[l] = set()
+
+    generate_automorphism([], [], U)
+    result = order_computation()
+    X = list()
+    return result
 
 
 def order_computation():
     global X
     a = FindNonTrivialOrbit(X)
+    a = 0 if a is None else a
     orb_a = Orbit(X, a, False)
     stab_a = Stabilizer(X, a)                     # I should not just take the length of stab_a
     return order_of_stab(stab_a) * len(orb_a)     # Orbit-Stabilizer Theorem
@@ -18,14 +33,6 @@ def order_computation():
 
 def order_of_stab(stab_a):
     return len(stab_a)
-
-
-def generating_set_x(U):
-    global X
-    generate_automorphism([], [], U)
-    result = order_computation()
-    X = list()
-    return result
 
 
 # TODO
@@ -54,7 +61,7 @@ def generate_automorphism(D, I, U):
     if not is_balanced(alpha):
         return 0
     if is_bijection(alpha):
-        f = create_permutation_f(alpha, len(U.vertices) // 2)
+        f = create_permutation_f_and_update_orbits(alpha, len(U.vertices) // 2)
         # if not membership_test(f):
         #     X.append(f)
         X.append(f)  # adding f to X without membership test. after implementing membership test change this
@@ -89,11 +96,42 @@ def D_and_I_are_the_same(D: ["Vertex"], I: ["Vertex"], mod: int):
     return True
 
 
-def create_permutation_f(alpha: [{int: ["Vertex"]}], mod: int):
+def create_permutation_f_and_update_orbits(alpha: [{int: ["Vertex"]}], mod: int):
+    global y_to_its_orbits
     mapping = [i for i in range(mod)]
     for c in alpha[0].keys():
         mapping[alpha[0][c][0].label] = alpha[1][c][0].label - mod
+        y_to_its_orbits[alpha[0][c][0].label + mod].add(alpha[1][c][0].label)
     return permutation(mod, mapping=mapping)
+
+
+def ind_ref_with_orbit_pruning(D, I, U):
+    global y_to_its_orbits
+    alpha = fast_refinement(D, I, U)
+
+    if not is_balanced(alpha):
+        return 0
+    if is_bijection(alpha):
+        return 1
+
+    color_class = get_color_class(alpha[0])     # TODO: improve
+    x = alpha[0][color_class][0]                # TODO: improve
+
+    y_to_flag = dict()
+    for i in range(len(U.vertices) // 2, len(U.vertices)):
+        y_to_flag[i] = False
+    for y in alpha[1][color_class]:
+        if y_to_flag[y.label]:
+            continue
+        D_ = D + [x]
+        I_ = I + [y]
+        if ind_ref_with_orbit_pruning(D_, I_, U) == 1:
+            # go up the recursion tree and terminate
+            return 1
+        else:
+            for orbit_of_y in y_to_its_orbits[y.label]:
+                y_to_flag[orbit_of_y] = True
+    return 0
 
 
 def union(G, H):
@@ -143,14 +181,11 @@ def ind_ref(D, I, U, y_to_its_false_twins):
 
 
 def ind_ref_without_twin_pruning(D, I, U):
-    global X
     alpha = fast_refinement(D, I, U)
 
     if not is_balanced(alpha):
         return 0
     if is_bijection(alpha):
-        f = create_permutation_f(alpha, len(U.vertices) // 2)
-        X.append(f)
         return 1
 
     color_class = get_color_class(alpha[0])     # TODO: improve
@@ -220,6 +255,23 @@ def build_false_twins(H):
     return y_to_its_false_twins
 
 
+def deep_graph_copy(G):
+    G_ = Graph(False)
+
+    vertex_dict = {}
+    for v in G.vertices:
+        v_ = Vertex(G_)
+        G_.add_vertex(v_)
+        vertex_dict[v] = v_
+    for e in G.edges:
+        head_of_e_ = vertex_dict[e.head]
+        tail_of_e_ = vertex_dict[e.tail]
+        e_ = Edge(tail_of_e_, head_of_e_)
+        G_.add_edge(e_)
+
+    return G_
+
+
 def find_isomorphic_graphs(graphs):
     isomorphic_graphs_groups = []
     group = []  # list of isomorphic graphs
@@ -231,16 +283,14 @@ def find_isomorphic_graphs(graphs):
         if selected[index_graph1]:
             continue
 
-        group_count_automorphism = 0
+        group_count_automorphism = generating_set_x(union(graphs[index_graph1], deep_graph_copy(graphs[index_graph1])))
 
         for index_graph2 in range(index_graph1 + 1, len(graphs)):
             if index_graph1 != index_graph2:
-                U = graphs[index_graph1] + graphs[index_graph2]
-                y_to_its_false_twins = build_false_twins(U)
-                count_automorphism = ind_ref([], [], U, y_to_its_false_twins)
+                U = union(graphs[index_graph2], graphs[index_graph1])
+                iso_test = ind_ref_with_orbit_pruning([], [], U)
 
-                if count_automorphism:  # if the number of automorphisms is more than 0
-                    group_count_automorphism = count_automorphism
+                if iso_test:  # if the graphs are isomorphic
                     group.append(index_graph2)
                     selected[index_graph2] = True
 
@@ -269,18 +319,10 @@ def execute(file_path):
 
 
 if __name__ == '__main__':
-    # start = time()
-    #
-    # graph_name = "cubes5"
-    # file_path = f'SampleGraphSetBranching//{graph_name}.grl'
-    # execute(file_path)
-    #
-    # print(time() - start)
     start = time()
-    with open("./sample/cubes5_0.grl") as f1:
-        G = load_graph(f1)
-    with open("./sample/cubes5_0.grl") as f2:
-        H = load_graph(f2)
-    U = union(G, H)
-    print(generating_set_x(U))
-    print("Time: ", time() - start)
+
+    graph_name = "cubes8"
+    file_path = f'SampleGraphSetBranching//{graph_name}.grl'
+    execute(file_path)
+
+    print(time() - start)
