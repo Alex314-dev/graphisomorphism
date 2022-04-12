@@ -2,7 +2,6 @@ from fast_partition_refinement import *
 from ahu_trees import *
 from basicpermutationgroup import *
 import collections
-from functools import reduce
 
 
 global y_to_its_orbits
@@ -38,15 +37,13 @@ def order_computation(permutation: "permutation"):
 
 
 # TODO
-# In membership testing we might not need to compute the stabilizer each time.
-# If nothing was added in the previous iteration we can just use what was computed before.
-def membership_test(f: "permutation"):
-    global X
-    if len(X) == 0:
+def membership_test(f: "permutation", generator: ["permutation"]):
+    if len(generator) == 0:
         return False
     else:
-        a = FindNonTrivialOrbit(X)
-        orb_transversal = Orbit(X, a, True)
+        a = FindNonTrivialOrbit(generator)
+        a = 0 if a is None else a
+        orb_transversal = Orbit(generator, a, True)
         orb_a = orb_transversal[0]
         transversal = orb_transversal[1]
         b = f[a]
@@ -54,8 +51,7 @@ def membership_test(f: "permutation"):
             return False
         else:
             # sifting
-            pass
-    return True
+            return False
 
 
 def generate_automorphism(D, I, U):
@@ -66,9 +62,8 @@ def generate_automorphism(D, I, U):
         return 0
     if is_bijection(alpha):
         f = create_permutation_f_and_update_orbits(alpha, len(U.vertices) // 2)
-        # if not membership_test(f):
-        #     X.append(f)
-        X.append(f)  # adding f to X without membership test. after implementing membership test change this
+        if not membership_test(f, X):
+            X.append(f)
         return 1
 
     color_class = get_color_class(alpha[0])
@@ -330,7 +325,7 @@ def execute(file_path):
 if __name__ == '__main__':
     start = time.time()
 
-    graph_name = "wheeljoin14"
+    graph_name = "modulesC"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     execute(file_path)
 
