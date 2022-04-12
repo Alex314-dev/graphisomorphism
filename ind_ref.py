@@ -51,6 +51,8 @@ def order_of_stabilizer(stab):
 
 
 # TODO
+# In membership testing we might not need to compute the stabilizer each time.
+# If nothing was added in the previous iteration we can just use what was computed before.
 def membership_test(f: "permutation"):
     global X
     if len(X) == 0:
