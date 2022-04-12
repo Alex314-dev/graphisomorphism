@@ -27,10 +27,10 @@ def order_computation(permutation: "permutation"):
     for p in permutation:
         if not p.istrivial():
             nontrivial_found = True
+            break
     if not nontrivial_found:
         return 1
     a = FindNonTrivialOrbit(permutation)
-    a = 0 if a is None else a
     orb_a = Orbit(permutation, a, False)
     stab_a = Stabilizer(permutation, a)             # I should not just take the length of stab_a
     return order_computation(stab_a) * len(orb_a)   # Orbit-Stabilizer Theorem
@@ -325,7 +325,7 @@ def execute(file_path):
 if __name__ == '__main__':
     start = time.time()
 
-    graph_name = "modulesC"
+    graph_name = "torus144"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     execute(file_path)
 
