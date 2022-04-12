@@ -16,24 +16,10 @@ def generating_set_x(U):
     for l in range(len(U.vertices) // 2, len(U.vertices)):
         y_to_its_orbits[l] = set()
     generate_automorphism([], [], U)
-    reduce_generating_set(X)
+    X = Reduce(X)
     result = order_computation(X)
     X = list()
     return result
-
-
-def reduce_generating_set(X):
-    perm_checked = [False] * len(X)
-    remove_index = list()
-    for i in range(len(X)):
-        for j in range(i + 1, len(X)):
-            if perm_checked[j]:
-                continue
-            if X[i] == X[j]:
-                remove_index.append(j)
-                perm_checked[j] = True
-    for i in remove_index:
-        X.remove(X[i])
 
 
 def order_computation(permutation: ["permutation"]):
@@ -334,6 +320,10 @@ def execute(file_path):
         if len(graphs_no_trees) > 0:
             print(f"Tree graphs: {graphs_no_trees}\n")
 
+        if len(graphs) == 1:
+            print("Number of automorphisms: ", generating_set_x(union(graphs[0], deep_graph_copy(graphs[0]))))
+            return
+
         isomorphic_graphs_groups = isomorphic_graphs_groups + find_isomorphic_graphs(graphs, graphs_no_trees)
         iso_print(isomorphic_graphs_groups)
 
@@ -341,7 +331,7 @@ def execute(file_path):
 if __name__ == '__main__':
     start = time.time()
 
-    graph_name = "wheeljoin33"
+    graph_name = "cubes9"
     file_path = f'./SampleGraphSetBranching/{graph_name}.grl'
     execute(file_path)
 
