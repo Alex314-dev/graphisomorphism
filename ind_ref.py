@@ -15,14 +15,13 @@ def generating_set_x(U):
     global y_to_its_orbits
     for l in range(len(U.vertices) // 2, len(U.vertices)):
         y_to_its_orbits[l] = set()
-
     generate_automorphism([], [], U)
     result = order_computation(X)
     X = list()
     return result
 
 
-def order_computation(permutation: "permutation"):
+def order_computation(permutation: ["permutation"]):
     nontrivial_found = False
     for p in permutation:
         if not p.istrivial():
@@ -32,17 +31,20 @@ def order_computation(permutation: "permutation"):
         return 1
     a = FindNonTrivialOrbit(permutation)
     orb_a = Orbit(permutation, a, False)
-    stab_a = Stabilizer(permutation, a)             # I should not just take the length of stab_a
+    stab_a = Stabilizer(permutation, a)
     return order_computation(stab_a) * len(orb_a)   # Orbit-Stabilizer Theorem
 
 
 # TODO
 def membership_test(f: "permutation", generator: ["permutation"]):
+    if f.istrivial():
+        return True
     if len(generator) == 0:
         return False
     else:
         a = FindNonTrivialOrbit(generator)
-        a = 0 if a is None else a
+        if a is None:   # here we know f is not trivial but if we do not have nontrivial orbit than generator is only id
+            return False
         orb_transversal = Orbit(generator, a, True)
         orb_a = orb_transversal[0]
         transversal = orb_transversal[1]
@@ -50,7 +52,9 @@ def membership_test(f: "permutation", generator: ["permutation"]):
         if b not in orb_a:
             return False
         else:
-            # sifting
+            # transversal_index = orb_a.index(b)
+            # if membership_test(-transversal[transversal_index] * f, Stabilizer(generator, a)):
+            #     return True
             return False
 
 
@@ -70,7 +74,7 @@ def generate_automorphism(D, I, U):
     x = alpha[0][color_class][0]
 
     branch_color = alpha[1][color_class]
-    # in the below for loop I try to make sure x is mapped to x first
+    # in the below for loop I try to make sure x is mapped to x first as this will hugely increase the amount of pruning
     for v in branch_color:
         if v.label == x.label + len(U.vertices) // 2:
             branch_color.remove(v)
@@ -80,12 +84,11 @@ def generate_automorphism(D, I, U):
         D_ = D + [x]
         I_ = I + [y]
         if generate_automorphism(D_, I_, U) == 1:
-            # check whether D and I are the same (not D_ and I_ -- this is important).
+            # check whether D and I are the same
             # if they are, this is a trivial node and simply continue the for loop
             # if not then return 1 up the chain
             if not D_and_I_are_the_same(D, I, len(U.vertices) // 2):
                 return 1
-    # should I return 1 here?
 
 
 def D_and_I_are_the_same(D: ["Vertex"], I: ["Vertex"], mod: int):
@@ -113,8 +116,8 @@ def ind_ref_with_orbit_pruning(D, I, U):
     if is_bijection(alpha):
         return 1
 
-    color_class = get_color_class(alpha[0])     # TODO: improve
-    x = alpha[0][color_class][0]                # TODO: improve
+    color_class = get_color_class(alpha[0])
+    x = alpha[0][color_class][0]
 
     y_to_flag = dict()
     for i in range(len(U.vertices) // 2, len(U.vertices)):
@@ -159,14 +162,14 @@ def ind_ref(D, I, U, y_to_its_false_twins):
     if is_bijection(alpha):
         return 1
 
-    color_class = get_color_class(alpha[0])     # TODO: improve
-    x = alpha[0][color_class][0]                # TODO: improve
+    color_class = get_color_class(alpha[0])
+    x = alpha[0][color_class][0]
 
     y_to_automorphism_count = dict()
     for i in range(len(U.vertices) // 2, len(U.vertices)):
         y_to_automorphism_count[U.vertices[i]] = -1
     num = 0
-    for y in alpha[1][color_class]:              # vertices in the second graph with color `color_class`
+    for y in alpha[1][color_class]:
         if y_to_automorphism_count[y] != -1:
             num = num + y_to_automorphism_count[y]
             continue
@@ -187,11 +190,11 @@ def ind_ref_without_twin_pruning(D, I, U):
     if is_bijection(alpha):
         return 1
 
-    color_class = get_color_class(alpha[0])     # TODO: improve
-    x = alpha[0][color_class][0]                # TODO: improve
+    color_class = get_color_class(alpha[0])
+    x = alpha[0][color_class][0]
 
     num = 0
-    for y in alpha[1][color_class]:              # vertices in the second graph with color `color_class`
+    for y in alpha[1][color_class]:
         D_ = D + [x]
         I_ = I + [y]
         num = num + ind_ref_without_twin_pruning(D_, I_, U)
@@ -289,7 +292,7 @@ def find_isomorphic_graphs(graphs, tree_ids):
                 U = union(graphs[index_graph2], graphs[index_graph1])
                 iso_test = ind_ref_with_orbit_pruning([], [], U)
 
-                if iso_test:  # if the graphs are isomorphic
+                if iso_test:
                     group.append(index_graph2)
                     selected[index_graph2] = True
 
@@ -325,7 +328,7 @@ def execute(file_path):
 if __name__ == '__main__':
     start = time.time()
 
-    graph_name = "torus144"
+    graph_name = "cubes8"
     file_path = f'SampleGraphSetBranching//{graph_name}.grl'
     execute(file_path)
 
