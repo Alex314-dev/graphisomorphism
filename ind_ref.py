@@ -319,6 +319,10 @@ def execute(file_path):
         graphs = L[0]
 
         isomorphic_graphs_groups, graphs_no_trees = exec_ahu_trees_graphs(graphs)
+
+        if len(graphs_no_trees) > 0:
+            print(f"Tree graphs: {graphs_no_trees}\n")
+
         isomorphic_graphs_groups = isomorphic_graphs_groups + find_isomorphic_graphs(graphs, graphs_no_trees)
         iso_print(isomorphic_graphs_groups)
 
