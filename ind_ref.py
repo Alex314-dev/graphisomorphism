@@ -328,8 +328,8 @@ def execute(file_path):
 if __name__ == '__main__':
     start = time.time()
 
-    graph_name = "cubes8"
-    file_path = f'SampleGraphSetBranching//{graph_name}.grl'
+    graph_name = "cubes6"
+    file_path = f'./{graph_name}.grl'
     execute(file_path)
 
     print(time.time() - start)
