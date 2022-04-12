@@ -12,8 +12,12 @@ def order_computation():
     global X
     a = FindNonTrivialOrbit(X)
     orb_a = Orbit(X, a, False)
-    stab_a = Stabilizer(X, a)
-    return len(orb_a) * len(stab_a)     # Orbit-Stabilizer Theorem
+    stab_a = Stabilizer(X, a)                     # I should not just take the length of stab_a
+    return order_of_stab(stab_a) * len(orb_a)     # Orbit-Stabilizer Theorem
+
+
+def order_of_stab(stab_a):
+    return len(stab_a)
 
 
 def generating_set_x(U):
@@ -60,6 +64,7 @@ def generate_automorphism(D, I, U):
     x = alpha[0][color_class][0]
 
     branch_color = alpha[1][color_class]
+    # in the below for loop I try to make sure x is mapped to x first
     for v in branch_color:
         if v.label == x.label + len(U.vertices) // 2:
             branch_color.remove(v)
@@ -74,7 +79,7 @@ def generate_automorphism(D, I, U):
             # if not then return 1 up the chain
             if not D_and_I_are_the_same(D, I, len(U.vertices) // 2):
                 return 1
-    return 1
+    # should I return 1 here?
 
 
 def D_and_I_are_the_same(D: ["Vertex"], I: ["Vertex"], mod: int):
@@ -134,6 +139,28 @@ def ind_ref(D, I, U, y_to_its_false_twins):
         for twin_of_y in y_to_its_false_twins[y]:
             y_to_automorphism_count[twin_of_y] = temp_sol
         num = num + temp_sol
+    return num
+
+
+def ind_ref_without_twin_pruning(D, I, U):
+    global X
+    alpha = fast_refinement(D, I, U)
+
+    if not is_balanced(alpha):
+        return 0
+    if is_bijection(alpha):
+        f = create_permutation_f(alpha, len(U.vertices) // 2)
+        X.append(f)
+        return 1
+
+    color_class = get_color_class(alpha[0])     # TODO: improve
+    x = alpha[0][color_class][0]                # TODO: improve
+
+    num = 0
+    for y in alpha[1][color_class]:              # vertices in the second graph with color `color_class`
+        D_ = D + [x]
+        I_ = I + [y]
+        num = num + ind_ref_without_twin_pruning(D_, I_, U)
     return num
 
 
