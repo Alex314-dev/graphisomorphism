@@ -16,9 +16,24 @@ def generating_set_x(U):
     for l in range(len(U.vertices) // 2, len(U.vertices)):
         y_to_its_orbits[l] = set()
     generate_automorphism([], [], U)
+    reduce_generating_set(X)
     result = order_computation(X)
     X = list()
     return result
+
+
+def reduce_generating_set(X):
+    perm_checked = [False] * len(X)
+    remove_index = list()
+    for i in range(len(X)):
+        for j in range(i + 1, len(X)):
+            if perm_checked[j]:
+                continue
+            if X[i] == X[j]:
+                remove_index.append(j)
+                perm_checked[j] = True
+    for i in remove_index:
+        X.remove(X[i])
 
 
 def order_computation(permutation: ["permutation"]):
@@ -45,9 +60,9 @@ def membership_test(f: "permutation", generator: ["permutation"]):
         a = FindNonTrivialOrbit(generator)
         if a is None:   # here we know f is not trivial but if we do not have nontrivial orbit than generator is only id
             return False
-        orb_transversal = Orbit(generator, a, True)
-        orb_a = orb_transversal[0]
-        transversal = orb_transversal[1]
+        orb_transversal = Orbit(generator, a, False)
+        orb_a = orb_transversal
+        # transversal = orb_transversal[1]
         b = f[a]
         if b not in orb_a:
             return False
@@ -285,6 +300,7 @@ def find_isomorphic_graphs(graphs, tree_ids):
         if selected[index_graph1] or index_graph1 in tree_ids:
             continue
 
+        group.append(index_graph1)
         group_count_automorphism = generating_set_x(union(graphs[index_graph1], deep_graph_copy(graphs[index_graph1])))
 
         for index_graph2 in range(index_graph1 + 1, len(graphs)):
@@ -296,10 +312,7 @@ def find_isomorphic_graphs(graphs, tree_ids):
                     group.append(index_graph2)
                     selected[index_graph2] = True
 
-        if len(group) != 0 and not selected[index_graph1]:
-            group.append(index_graph1)
-            isomorphic_graphs_groups.append((group, group_count_automorphism))
-
+        isomorphic_graphs_groups.append((group, group_count_automorphism))
         group = []
 
     return isomorphic_graphs_groups
@@ -328,8 +341,8 @@ def execute(file_path):
 if __name__ == '__main__':
     start = time.time()
 
-    graph_name = "cubes6"
-    file_path = f'./{graph_name}.grl'
+    graph_name = "wheeljoin33"
+    file_path = f'./SampleGraphSetBranching/{graph_name}.grl'
     execute(file_path)
 
     print(time.time() - start)
