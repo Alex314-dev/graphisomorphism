@@ -22,26 +22,26 @@ def pre_neighbours(U):
 
 
 def is_graph_tree(G: Graph):
-    visited = [False] * len(G.vertices)
+    visited = [0] * len(G.vertices)
     neighbours = pre_neighbours(G)
 
-    if is_cyclic(G, neighbours, G.vertices[0], visited, None):
+    if has_cycles(G, neighbours, G.vertices[0], visited, None):
 
         return False
 
-    for i in range(0, len(G.vertices)):
-        if not visited[i]:
+    for v_id in range(0, len(G.vertices)):
+        if not visited[v_id]:
             return False
 
     return True
 
 
-def is_cyclic(G: Graph, neighbours: {Vertex: [Vertex]}, v: Vertex, visited: [bool], parent: Vertex):
-    visited[v.label] = True
+def has_cycles(G: Graph, neighbours: {Vertex: [Vertex]}, v: Vertex, visited: [bool], parent: Vertex):
+    visited[v.label] = 1
 
     for neighbour in neighbours[v]:
         if not visited[neighbour.label]:
-            if is_cyclic(G, neighbours, neighbour, visited, v):
+            if has_cycles(G, neighbours, neighbour, visited, v):
                 return True
         elif parent is not None and neighbour.label != parent.label:
             return True
